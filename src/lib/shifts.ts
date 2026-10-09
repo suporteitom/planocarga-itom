@@ -19,7 +19,7 @@ export const shiftLabel = (k: string) => SHIFTS.find((s) => s.key === k)?.label 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export function addDays(date: string, n: number): string {
-  const [y, m, d] = date.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = date.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 }
 
@@ -44,7 +44,7 @@ export function spParts(iso: string | Date | null | undefined) {
 export function dtLocalToIso(v: string): string | null {
   if (!v) return null;
   const [d, t] = v.split("T");
-  return fromSp(d, t ?? "00:00").toISOString();
+  return fromSp(d ?? "", t ?? "00:00").toISOString();
 }
 
 export function shiftWindow({ date, shift }: ShiftRef): { start: Date; end: Date } {

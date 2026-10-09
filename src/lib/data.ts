@@ -119,7 +119,7 @@ export function useRealtimeSync() {
     let ch = supabase.channel("passagem-turno");
     for (const table of Object.keys(map)) {
       ch = ch.on("postgres_changes", { event: "*", schema: "public", table }, () => {
-        map[table].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+        map[table]!.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       });
     }
     ch.subscribe();

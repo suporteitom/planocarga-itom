@@ -108,7 +108,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
           </thead>
           <tbody>
             {rows.map((i) => {
-              const st = STATUSES.find((s) => s.key === i.status) ?? STATUSES[0];
+              const st = STATUSES.find((s) => s.key === i.status) ?? STATUSES[0]!;
               const sp = spParts(i.start_at);
               return (
                 <tr key={i.id} className="group hover:bg-accent/40" title={`Criado por ${i.created_by ?? "—"} em ${spParts(i.created_at).br} · alterado por ${i.updated_by ?? "—"} em ${spParts(i.updated_at).br}`}>

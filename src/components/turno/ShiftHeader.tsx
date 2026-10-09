@@ -29,13 +29,13 @@ export function ShiftHeader({
   const hasSomething = counts.messages + counts.interventions > 0;
 
   const addPerson = async (name: string) => {
-    if (!user) return toast.error("Escolha seu nome no topo antes de editar.");
+    if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
     const id = data?.shiftId ?? (await getOrCreateShift(shiftRef, user));
     const { error } = await supabase.from("shift_attendance").insert({ shift_id: id, member_name: name, created_by: user });
     if (error && !error.message.includes("duplicate")) toast.error("Não foi possível adicionar.");
   };
   const removePerson = async (id: string) => {
-    if (!user) return toast.error("Escolha seu nome no topo antes de editar.");
+    if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
     await supabase.from("shift_attendance").delete().eq("id", id);
   };
 

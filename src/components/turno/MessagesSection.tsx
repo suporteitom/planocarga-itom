@@ -20,8 +20,8 @@ export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
   const [author, setAuthor] = useState("");
 
   const add = async () => {
-    if (!user) return toast.error("Escolha seu nome no topo antes de registrar.");
-    if (!body.trim()) return;
+    if (!user) { toast.error("Escolha seu nome no topo antes de registrar."); return; }
+    if (!body.trim()) { return; }
     const { error } = await supabase.from("messages").insert({
       category: "recados",
       shift_date: shiftRef.date,
@@ -32,7 +32,7 @@ export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
       author: author || user,
       ...auditCreate(user),
     });
-    if (error) return toast.error("Erro ao salvar recado.");
+    if (error) { toast.error("Erro ao salvar recado."); return; }
     setBody("");
     setImportant(false);
     setWhen("");
@@ -82,7 +82,7 @@ function MessageRow({ m, user, carried }: { m: Message; user: string; carried?: 
   const important = m.importance === "importante";
 
   const update = async (patch: Partial<Message>) => {
-    if (!user) return toast.error("Escolha seu nome no topo antes de editar.");
+    if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
     const { error } = await supabase.from("messages").update({ ...patch, ...auditUpdate(user) }).eq("id", m.id);
     if (error) toast.error("Erro ao atualizar.");
   };
@@ -106,7 +106,7 @@ function MessageRow({ m, user, carried }: { m: Message; user: string; carried?: 
             <Button size="sm" variant="ghost" className="h-7 text-success" onClick={() => update({ status: "resolvido", resolved_at: new Date().toISOString(), resolved_by: user })}><Check className="mr-1 h-3.5 w-3.5" />Resolver</Button>
           )}
           <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Excluir" onClick={async () => {
-            if (!user) return toast.error("Escolha seu nome no topo antes de editar.");
+            if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
             if (confirm("Excluir este recado?")) await supabase.from("messages").delete().eq("id", m.id);
           }}><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
