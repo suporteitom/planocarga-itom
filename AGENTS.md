@@ -8,3 +8,9 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Passagem de turno
+- All shift/timezone math lives in src/lib/shifts.ts (America/Sao_Paulo; night shift belongs to its start date) — single tested source of truth.
+- Current user identity comes only from useCurrentUser in src/lib/identity.ts — swap it for real auth later without touching screens.
+- v1 has no login: tables use an open RLS policy for anon; replace with auth-scoped policies when login is added.
+- Live updates via one realtime channel (useRealtimeSync) that invalidates react-query keys.
