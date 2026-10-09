@@ -96,7 +96,7 @@ export function useInterventions(ref: ShiftRef) {
         .from("interventions")
         .select("*")
         .lt("start_at", end.toISOString())
-        .or(`end_at.gt.${s},and(end_at.is.null,start_at.gte.${s}),start_at.gte.${s}`)
+        .or(`end_at.gt.${s},start_at.gte.${s}`)
         .order("start_at");
       if (error) throw error;
       return data;
