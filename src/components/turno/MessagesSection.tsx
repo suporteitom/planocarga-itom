@@ -94,17 +94,12 @@ function MessageRow({ m, user, carried }: { m: Message; user: string; carried?: 
         <span className="font-medium">{m.author}</span>
         {important && <Badge variant="destructive" className="h-5 text-[10px]">IMPORTANTE</Badge>}
         {carried && <Badge className="h-5 bg-warning text-[10px] text-warning-foreground hover:bg-warning">Pendente de {brDate(m.shift_date)} {shiftLabel(m.shift)}</Badge>}
-        <Badge variant="outline" className={cn("h-5 text-[10px]", resolved ? "border-success text-success" : "")}>{resolved ? "Resolvido" : "Aberto"}</Badge>
+        <span className="text-[10px] text-muted-foreground">{brDate(m.shift_date)} {shiftLabel(m.shift)}</span>
         <div className="ml-auto flex gap-0.5">
           <Button size="icon" variant="ghost" className="h-7 w-7" title={important ? "Marcar normal" : "Marcar importante"} onClick={() => update({ importance: important ? "normal" : "importante" })}>
             <AlertTriangle className="h-3.5 w-3.5" />
           </Button>
           <Button size="icon" variant="ghost" className="h-7 w-7" title="Editar" onClick={() => setEditing(!editing)}><Pencil className="h-3.5 w-3.5" /></Button>
-          {resolved ? (
-            <Button size="sm" variant="ghost" className="h-7" onClick={() => update({ status: "aberto", resolved_at: null, resolved_by: null })}><RotateCcw className="mr-1 h-3.5 w-3.5" />Reabrir</Button>
-          ) : (
-            <Button size="sm" variant="ghost" className="h-7 text-success" onClick={() => update({ status: "resolvido", resolved_at: new Date().toISOString(), resolved_by: user })}><Check className="mr-1 h-3.5 w-3.5" />Resolver</Button>
-          )}
           <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Excluir" onClick={async () => {
             if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
             if (confirm("Excluir este recado?")) await supabase.from("messages").delete().eq("id", m.id);

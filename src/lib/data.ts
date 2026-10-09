@@ -62,26 +62,17 @@ export async function getOrCreateShift(ref: ShiftRef, by: string) {
 }
 
 /** Recados do turno + recados em aberto de turnos anteriores. */
-export function useMessages(ref: ShiftRef) {
+export function useMessages(_ref?: ShiftRef) {
   return useQuery({
-    queryKey: ["messages", ref.date, ref.shift],
+    queryKey: ["messages", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
         .select("*")
         .eq("category", "recados")
-        .or(`and(shift_date.eq.${ref.date},shift.eq.${ref.shift}),status.eq.aberto`)
-        .order("occurred_at", { ascending: true });
+        .order("occurred_at", { ascending: false });
       if (error) throw error;
-      const cur = shiftWindow(ref).start.getTime();
-      const own: Message[] = [];
-      const carried: Message[] = [];
-      for (const m of data) {
-        if (m.shift_date === ref.date && m.shift === ref.shift) own.push(m);
-        else if (shiftWindow({ date: m.shift_date, shift: m.shift as ShiftRef["shift"] }).start.getTime() < cur)
-          carried.push(m);
-      }
-      return { own, carried };
+      return { own: data as Message[], carried: [] as Message[] };
     },
   });
 }
