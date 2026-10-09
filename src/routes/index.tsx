@@ -82,7 +82,7 @@ function Index() {
             counts={counts}
             onExport={() => exportXlsx(`turno_${shiftRef.date}_${shiftLabel(shiftRef.shift)}.xlsx`, [...(msgs?.carried ?? []), ...(msgs?.own ?? [])], ints)}
           />
-          <div className="grid gap-4 p-3 md:p-4">
+          <div className="grid grid-cols-1 gap-4 p-3 md:p-4">
             <MessagesSection shiftRef={shiftRef} user={name} />
             <InterventionsSection shiftRef={shiftRef} user={name} />
           </div>

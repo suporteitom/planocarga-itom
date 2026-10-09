@@ -84,7 +84,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   );
 
   return (
-    <section className="rounded-lg border border-border bg-card">
+    <section className="min-w-0 rounded-lg border border-border bg-card">
       <header className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <h2 className="mr-auto text-sm font-semibold uppercase tracking-wide">Intervenções planejadas</h2>
         <select value={fType} onChange={(e) => setFType(e.target.value)} className="h-8 rounded-md border border-input bg-background px-2 text-xs">

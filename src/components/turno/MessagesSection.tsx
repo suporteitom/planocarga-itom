@@ -42,7 +42,7 @@ export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
   const own = data?.own ?? [];
 
   return (
-    <section className="rounded-lg border border-border bg-card">
+    <section className="min-w-0 rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <h2 className="text-sm font-semibold uppercase tracking-wide">Recados</h2>
         <span className="font-mono text-xs text-muted-foreground">{own.length} no turno · {carried.length} pendentes</span>
