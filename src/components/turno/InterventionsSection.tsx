@@ -141,7 +141,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
               );
             })}
             {rows.length === 0 && (
-              <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção neste turno.</td></tr>
+              <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
             )}
           </tbody>
         </table>

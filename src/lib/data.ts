@@ -86,17 +86,14 @@ export function useMessages(ref: ShiftRef) {
   });
 }
 
-export function useInterventions(ref: ShiftRef) {
+/** Todas as intervenções, sem filtro por turno/dia. */
+export function useInterventions(_ref?: ShiftRef) {
   return useQuery({
-    queryKey: ["interventions", ref.date, ref.shift],
+    queryKey: ["interventions", "all"],
     queryFn: async () => {
-      const { start, end } = shiftWindow(ref);
-      const s = start.toISOString();
       const { data, error } = await supabase
         .from("interventions")
         .select("*")
-        .lt("start_at", end.toISOString())
-        .or(`end_at.gt.${s},start_at.gte.${s}`)
         .order("start_at");
       if (error) throw error;
       return data;
