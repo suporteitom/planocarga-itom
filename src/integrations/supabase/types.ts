@@ -14,7 +14,284 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_tasks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          done: boolean
+          id: string
+          shift: string
+          shift_date: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          done?: boolean
+          id?: string
+          shift: string
+          shift_date: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          done?: boolean
+          id?: string
+          shift?: string
+          shift_date?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      intervention_types: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      interventions: {
+        Row: {
+          client: string | null
+          created_at: string
+          created_by: string | null
+          email_subject: string | null
+          end_at: string | null
+          id: string
+          notes: string | null
+          sent_at: string | null
+          sent_by: string | null
+          start_at: string
+          status: string
+          ticket: string | null
+          type: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          client?: string | null
+          created_at?: string
+          created_by?: string | null
+          email_subject?: string | null
+          end_at?: string | null
+          id?: string
+          notes?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          start_at: string
+          status?: string
+          ticket?: string | null
+          type?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          client?: string | null
+          created_at?: string
+          created_by?: string | null
+          email_subject?: string | null
+          end_at?: string | null
+          id?: string
+          notes?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          start_at?: string
+          status?: string
+          ticket?: string | null
+          type?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      job_monitoring: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          job_name: string
+          notes: string | null
+          shift: string
+          shift_date: string
+          status: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_name: string
+          notes?: string | null
+          shift: string
+          shift_date: string
+          status?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_name?: string
+          notes?: string | null
+          shift?: string
+          shift_date?: string
+          status?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      members: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          author: string | null
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          importance: string
+          occurred_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          shift: string
+          shift_date: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          author?: string | null
+          body: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          importance?: string
+          occurred_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shift: string
+          shift_date: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          author?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          importance?: string
+          occurred_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shift?: string
+          shift_date?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      shift_attendance: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          member_name: string
+          shift_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          member_name: string
+          shift_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          member_name?: string
+          shift_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_attendance_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shifts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          shift: string
+          shift_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          shift: string
+          shift_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          shift?: string
+          shift_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
