@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { Download, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,6 @@ export function HistoryPanel({ onOpenShift }: { onOpenShift: (date: string, shif
   );
 }
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <label className="grid gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}{children}</label>
 );

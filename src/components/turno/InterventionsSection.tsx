@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpDown, Copy, Plus, Settings2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -72,7 +73,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
     if (confirm("Excluir esta intervenção?")) await supabase.from("interventions").delete().eq("id", id);
   };
 
-  const Th = ({ k, children, className }: { k?: SortKey; children: React.ReactNode; className?: string }) => (
+  const Th = ({ k, children, className }: { k?: SortKey; children: ReactNode; className?: string }) => (
     <th className={cn("sticky top-0 whitespace-nowrap border-b border-r border-border bg-muted px-2 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide", className)}>
       {k ? (
         <button className="inline-flex items-center gap-1" onClick={() => setSort({ k, asc: sort.k === k ? !sort.asc : true })}>
@@ -149,7 +150,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   );
 }
 
-const Td = ({ children }: { children: React.ReactNode }) => (
+const Td = ({ children }: { children: ReactNode }) => (
   <td className="border-b border-r border-border px-1.5 py-1 align-middle">{children}</td>
 );
 
