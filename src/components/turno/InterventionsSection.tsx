@@ -97,6 +97,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
         <Button size="sm" onClick={add}><Plus className="mr-1 h-3.5 w-3.5" />Nova linha</Button>
       </header>
       <datalist id="members-list">{members.map((m) => <option key={m.id} value={m.name} />)}</datalist>
+      <datalist id="types-list">{types.map((t) => <option key={t.id} value={t.name} />)}</datalist>
       <div className="max-h-[60vh] overflow-auto">
         <table className="w-full border-collapse text-xs">
           <thead>
@@ -113,11 +114,18 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
               return (
                 <tr key={i.id} className="group hover:bg-accent/40" title={`Criado por ${i.created_by ?? "—"} em ${spParts(i.created_at).br} · alterado por ${i.updated_by ?? "—"} em ${spParts(i.updated_at).br}`}>
                   <Td>
-                    <select value={i.type ?? ""} onChange={(e) => save(i.id, { type: e.target.value || null })} className="w-28 bg-transparent outline-none">
-                      <option value="">—</option>
-                      {types.map((t) => <option key={t.id}>{t.name}</option>)}
-                      {i.type && !types.some((t) => t.name === i.type) && <option>{i.type}</option>}
-                    </select>
+                    <Cell
+                      value={i.type}
+                      list="types-list"
+                      className="w-28"
+                      onCommit={async (v) => {
+                        const name = v?.trim() || null;
+                        if (name && !types.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+                          await supabase.from("intervention_types").insert({ name });
+                        }
+                        save(i.id, { type: name });
+                      }}
+                    />
                   </Td>
                   <Td><Cell value={i.client} onCommit={(v) => save(i.id, { client: v })} className="w-28" /></Td>
                   <Td><Cell type="date" value={sp.date} onCommit={(v) => v && save(i.id, { start_at: fromSp(v, sp.time).toISOString() })} className="w-32 font-mono" /></Td>
