@@ -1,28 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { interventionInShift, nextShift, prevShift, shiftOf, shiftWindow } from "@/lib/shifts";
 
-describe("turnos (America/Sao_Paulo)", () => {
-  it("02:00 em SP pertence ao turno da noite do dia anterior", () => {
-    expect(shiftOf(new Date("2026-10-10T05:00:00Z"))).toEqual({ date: "2026-10-09", shift: "noite" });
+describe("turnos (America/Sao_Paulo) — o dia começa pela noite", () => {
+  it("02:00 em SP é a noite do próprio dia", () => {
+    expect(shiftOf(new Date("2026-10-10T05:00:00Z"))).toEqual({ date: "2026-10-10", shift: "noite" });
   });
   it("07:00 em SP é manhã", () => {
     expect(shiftOf(new Date("2026-10-10T10:00:00Z"))).toEqual({ date: "2026-10-10", shift: "manha" });
   });
-  it("23:00 em SP é noite do mesmo dia", () => {
-    expect(shiftOf(new Date("2026-10-11T02:00:00Z"))).toEqual({ date: "2026-10-10", shift: "noite" });
+  it("23:00 em SP já é a noite do dia seguinte (novo plano)", () => {
+    expect(shiftOf(new Date("2026-10-11T02:00:00Z"))).toEqual({ date: "2026-10-11", shift: "noite" });
   });
-  it("janela da noite vai de 23:00 até 07:00 do dia seguinte", () => {
-    const w = shiftWindow({ date: "2026-10-09", shift: "noite" });
+  it("noite do dia 10 vai de 23:00 do dia 9 até 07:00 do dia 10", () => {
+    const w = shiftWindow({ date: "2026-10-10", shift: "noite" });
     expect(w.start.toISOString()).toBe("2026-10-10T02:00:00.000Z");
     expect(w.end.toISOString()).toBe("2026-10-10T10:00:00.000Z");
   });
-  it("próximo turno após a noite é a manhã do dia seguinte", () => {
-    expect(nextShift({ date: "2026-10-09", shift: "noite" })).toEqual({ date: "2026-10-10", shift: "manha" });
-    expect(prevShift({ date: "2026-10-10", shift: "manha" })).toEqual({ date: "2026-10-09", shift: "noite" });
+  it("ordem: noite → manhã → tarde → noite do dia seguinte", () => {
+    expect(nextShift({ date: "2026-10-10", shift: "noite" })).toEqual({ date: "2026-10-10", shift: "manha" });
+    expect(nextShift({ date: "2026-10-10", shift: "tarde" })).toEqual({ date: "2026-10-11", shift: "noite" });
+    expect(prevShift({ date: "2026-10-10", shift: "noite" })).toEqual({ date: "2026-10-09", shift: "tarde" });
   });
   it("intervenção 14:00–16:00 aparece na manhã e na tarde, não na noite", () => {
-    const s = "2026-10-10T17:00:00Z"; // 14:00 SP
-    const e = "2026-10-10T19:00:00Z"; // 16:00 SP
+    const s = "2026-10-10T17:00:00Z";
+    const e = "2026-10-10T19:00:00Z";
     expect(interventionInShift(s, e, { date: "2026-10-10", shift: "manha" })).toBe(true);
     expect(interventionInShift(s, e, { date: "2026-10-10", shift: "tarde" })).toBe(true);
     expect(interventionInShift(s, e, { date: "2026-10-10", shift: "noite" })).toBe(false);
