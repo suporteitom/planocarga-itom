@@ -23,6 +23,7 @@ export function ShiftHeader({
   counts: { messages: number; carried: number; interventions: number };
   onExport: () => void;
 }) {
+  const qc = useQueryClient();
   const { data } = useAttendance(shiftRef);
   const people = data?.people ?? [];
   const status = data?.status ?? "pendente";
