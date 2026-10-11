@@ -4,14 +4,14 @@ export const TZ = "America/Sao_Paulo";
 
 export type ShiftKey = "manha" | "tarde" | "noite";
 export interface ShiftRef {
-  date: string; // yyyy-MM-dd (data em que o turno começou)
+  date: string; // yyyy-MM-dd (dia do plano; a noite 23h–07h abre o dia)
   shift: ShiftKey;
 }
 
 export const SHIFTS: { key: ShiftKey; label: string; hours: string; startHour: number }[] = [
+  { key: "noite", label: "Noite", hours: "23:00–07:00", startHour: 23 },
   { key: "manha", label: "Manhã", hours: "07:00–15:00", startHour: 7 },
   { key: "tarde", label: "Tarde", hours: "15:00–23:00", startHour: 15 },
-  { key: "noite", label: "Noite", hours: "23:00–07:00", startHour: 23 },
 ];
 
 export const shiftLabel = (k: string) => SHIFTS.find((s) => s.key === k)?.label ?? k;
@@ -50,29 +50,29 @@ export function dtLocalToIso(v: string): string | null {
 export function shiftWindow({ date, shift }: ShiftRef): { start: Date; end: Date } {
   if (shift === "manha") return { start: fromSp(date, "07:00"), end: fromSp(date, "15:00") };
   if (shift === "tarde") return { start: fromSp(date, "15:00"), end: fromSp(date, "23:00") };
-  return { start: fromSp(date, "23:00"), end: fromSp(addDays(date, 1), "07:00") };
+  return { start: fromSp(addDays(date, -1), "23:00"), end: fromSp(date, "07:00") };
 }
 
-/** Turno ao qual um instante pertence (noite pertence à data em que começou). */
+/** Turno ao qual um instante pertence (a noite das 23h abre o dia/plano seguinte). */
 export function shiftOf(instant: Date = new Date()): ShiftRef {
   const date = formatInTimeZone(instant, TZ, "yyyy-MM-dd");
   const h = Number(formatInTimeZone(instant, TZ, "H"));
-  if (h < 7) return { date: addDays(date, -1), shift: "noite" };
+  if (h < 7) return { date, shift: "noite" };
   if (h < 15) return { date, shift: "manha" };
   if (h < 23) return { date, shift: "tarde" };
-  return { date, shift: "noite" };
+  return { date: addDays(date, 1), shift: "noite" };
 }
 
 export function nextShift(r: ShiftRef): ShiftRef {
+  if (r.shift === "noite") return { date: r.date, shift: "manha" };
   if (r.shift === "manha") return { date: r.date, shift: "tarde" };
-  if (r.shift === "tarde") return { date: r.date, shift: "noite" };
-  return { date: addDays(r.date, 1), shift: "manha" };
+  return { date: addDays(r.date, 1), shift: "noite" };
 }
 
 export function prevShift(r: ShiftRef): ShiftRef {
-  if (r.shift === "noite") return { date: r.date, shift: "tarde" };
   if (r.shift === "tarde") return { date: r.date, shift: "manha" };
-  return { date: addDays(r.date, -1), shift: "noite" };
+  if (r.shift === "manha") return { date: r.date, shift: "noite" };
+  return { date: addDays(r.date, -1), shift: "tarde" };
 }
 
 /** Uma intervenção aparece em todo turno cujo intervalo ela toca. */
