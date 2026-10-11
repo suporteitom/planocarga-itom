@@ -43,11 +43,19 @@ export function useAttendance(ref: ShiftRef) {
     queryFn: async () => {
       const { data: shift } = await supabase
         .from("shifts")
-        .select("id, shift_attendance(*)")
+        .select("id, status, started_at, started_by, closed_at, closed_by, shift_attendance(*)")
         .eq("shift_date", ref.date)
         .eq("shift", ref.shift)
         .maybeSingle();
-      return { shiftId: shift?.id ?? null, people: shift?.shift_attendance ?? [] };
+      return {
+        shiftId: shift?.id ?? null,
+        people: shift?.shift_attendance ?? [],
+        status: (shift?.status ?? "pendente") as "pendente" | "em_andamento" | "encerrado",
+        startedAt: shift?.started_at ?? null,
+        startedBy: shift?.started_by ?? null,
+        closedAt: shift?.closed_at ?? null,
+        closedBy: shift?.closed_by ?? null,
+      };
     },
   });
 }
@@ -59,6 +67,19 @@ export async function getOrCreateShift(ref: ShiftRef, by: string) {
     .select("id")
     .single();
   return data!.id;
+}
+
+export async function setShiftStatus(ref: ShiftRef, status: "pendente" | "em_andamento" | "encerrado", by: string) {
+  const id = await getOrCreateShift(ref, by);
+  const now = new Date().toISOString();
+  const patch =
+    status === "em_andamento"
+      ? { status, started_at: now, started_by: by, closed_at: null, closed_by: null }
+      : status === "encerrado"
+        ? { status, closed_at: now, closed_by: by }
+        : { status };
+  const { error } = await supabase.from("shifts").update(patch).eq("id", id);
+  if (error) throw error;
 }
 
 /** Recados do turno + recados em aberto de turnos anteriores. */

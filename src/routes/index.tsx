@@ -8,7 +8,7 @@ import { InterventionsSection } from "@/components/turno/InterventionsSection";
 import { HistoryPanel } from "@/components/turno/HistoryPanel";
 import { NamePicker } from "@/components/turno/NamePicker";
 import { useCurrentUser } from "@/lib/identity";
-import { useInterventions, useMessages, useRealtimeSync } from "@/lib/data";
+import { useAttendance, useInterventions, useMessages, useRealtimeSync } from "@/lib/data";
 import { exportXlsx } from "@/lib/export";
 import { shiftLabel, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts";
 
@@ -39,6 +39,8 @@ function Index() {
   const [tab, setTab] = useState("recados");
   const { data: msgs } = useMessages(shiftRef);
   const { data: ints = [] } = useInterventions(shiftRef);
+  const { data: att } = useAttendance(shiftRef);
+  const closed = att?.status === "encerrado";
 
   const counts = { messages: msgs?.own.length ?? 0, carried: msgs?.carried.length ?? 0, interventions: ints.length };
 
@@ -82,10 +84,15 @@ function Index() {
             counts={counts}
             onExport={() => exportXlsx(`turno_${shiftRef.date}_${shiftLabel(shiftRef.shift)}.xlsx`, [...(msgs?.carried ?? []), ...(msgs?.own ?? [])], ints)}
           />
-          <div className="grid grid-cols-1 gap-4 p-3 md:p-4">
+          {closed && (
+            <div className="border-b border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
+              Turno encerrado — os registros estão bloqueados. Use "Reabrir turno" para editar.
+            </div>
+          )}
+          <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
             <MessagesSection shiftRef={shiftRef} user={name} />
             <InterventionsSection shiftRef={shiftRef} user={name} />
-          </div>
+          </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
           <HistoryPanel onOpenShift={(date, shift) => { setShiftRef({ date, shift: shift as ShiftKey }); setTab("recados"); }} />

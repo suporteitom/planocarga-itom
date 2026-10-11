@@ -270,25 +270,40 @@ export type Database = {
       }
       shifts: {
         Row: {
+          closed_at: string | null
+          closed_by: string | null
           created_at: string
           created_by: string | null
           id: string
           shift: string
           shift_date: string
+          started_at: string | null
+          started_by: string | null
+          status: string
         }
         Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           shift: string
           shift_date: string
+          started_at?: string | null
+          started_by?: string | null
+          status?: string
         }
         Update: {
+          closed_at?: string | null
+          closed_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           shift?: string
           shift_date?: string
+          started_at?: string | null
+          started_by?: string | null
+          status?: string
         }
         Relationships: []
       }
