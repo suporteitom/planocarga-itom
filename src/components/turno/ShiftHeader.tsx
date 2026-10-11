@@ -94,7 +94,7 @@ export function ShiftHeader({
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           {status === "pendente" && (
-            <Button size="sm" className="h-7 bg-success text-success-foreground hover:bg-success/90" onClick={() => changeStatus("em_andamento")}>
+            <Button size="sm" className="h-7 bg-success text-primary-foreground hover:bg-success/90" onClick={() => changeStatus("em_andamento")}>
               <Play className="mr-1 h-3.5 w-3.5" /> Iniciar turno
             </Button>
           )}
