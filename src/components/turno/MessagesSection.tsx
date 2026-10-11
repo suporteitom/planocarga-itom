@@ -66,7 +66,7 @@ export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
         </div>
       </div>
 
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-border max-h-[18rem] overflow-y-auto">
         {carried.map((m) => <MessageRow key={m.id} m={m} user={user} carried />)}
         {own.map((m) => <MessageRow key={m.id} m={m} user={user} />)}
         {carried.length + own.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">Nenhum recado neste turno.</li>}
