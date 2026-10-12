@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpDown, Copy, Plus, Settings2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -180,7 +181,17 @@ function Cell({ value, onCommit, type = "text", className, list }: { value: stri
 
 function TypesDialog() {
   const { data: types = [] } = useTypes();
+  const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const del = async (id: string, n: string) => {
+    setBusy(id);
+    const { error } = await supabase.from("intervention_types").delete().eq("id", id);
+    setBusy(null);
+    if (error) { toast.error("Não foi possível excluir o tipo."); return; }
+    await qc.invalidateQueries({ queryKey: ["types"] });
+    toast.success(`Tipo "${n}" removido.`);
+  };
   return (
     <Dialog>
       <DialogTrigger asChild><Button size="sm" variant="outline"><Settings2 className="mr-1 h-3.5 w-3.5" />Tipos</Button></DialogTrigger>
@@ -190,11 +201,11 @@ function TypesDialog() {
           {types.map((t) => (
             <li key={t.id} className="flex items-center justify-between rounded border border-border px-2 py-1 text-sm">
               {t.name}
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => supabase.from("intervention_types").delete().eq("id", t.id)}><X className="h-3 w-3" /></Button>
+              <Button type="button" size="icon" variant="ghost" className="h-6 w-6" disabled={busy === t.id} title="Excluir tipo" onClick={() => del(t.id, t.name)}><X className="h-3 w-3" /></Button>
             </li>
           ))}
         </ul>
-        <form className="flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (!name.trim()) return; await supabase.from("intervention_types").insert({ name: name.trim() }); setName(""); }}>
+        <form className="flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (!name.trim()) return; const { error } = await supabase.from("intervention_types").insert({ name: name.trim() }); if (error) { toast.error("Não foi possível adicionar (talvez já exista)."); return; } setName(""); qc.invalidateQueries({ queryKey: ["types"] }); }}>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Novo tipo" />
           <Button type="submit">Adicionar</Button>
         </form>
