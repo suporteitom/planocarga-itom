@@ -188,7 +188,7 @@ function TypesDialog() {
     setBusy(id);
     const { error } = await supabase.from("intervention_types").delete().eq("id", id);
     setBusy(null);
-    if (error) return toast.error("Não foi possível excluir o tipo.");
+    if (error) { toast.error("Não foi possível excluir o tipo."); return; }
     await qc.invalidateQueries({ queryKey: ["types"] });
     toast.success(`Tipo "${n}" removido.`);
   };
