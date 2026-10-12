@@ -1,7 +1,8 @@
+import type React from "react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpDown, Copy, Plus, Settings2, Trash2, X } from "lucide-react";
+import { ArrowUpDown, Check, Copy, Plus, Settings2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,33 +50,62 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
     return !!user;
   };
 
-  const save = async (id: string, patch: Partial<Intervention>) => {
-    if (!guard()) return;
-    const { error } = await supabase.from("interventions").update({ ...patch, ...auditUpdate(user) }).eq("id", id);
-    if (error) toast.error("Erro ao salvar.");
+  const qc = useQueryClient();
+  const [draftNew, setDraftNew] = useState<Partial<Intervention> | null>(null);
+
+  const ensureType = async (name: string | null | undefined) => {
+    if (name && !types.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+      await supabase.from("intervention_types").insert({ name });
+      qc.invalidateQueries({ queryKey: ["types"] });
+    }
   };
 
-  const add = async () => {
+  const save = async (id: string, patch: Partial<Intervention>) => {
+    if (!guard()) return false;
+    await ensureType(patch.type);
+    const { error } = await supabase.from("interventions").update({ ...patch, ...auditUpdate(user) }).eq("id", id);
+    if (error) { toast.error("Erro ao salvar."); return false; }
+    qc.invalidateQueries({ queryKey: ["interventions"] });
+    toast.success("Intervenção atualizada.");
+    return true;
+  };
+
+  const add = () => {
     if (!guard()) return;
-    const { start } = shiftWindow(shiftRef);
+    const { start, end } = shiftWindow(shiftRef);
     const begin = Math.max(start.getTime(), Date.now() - (Date.now() % 1800000));
-    const inShift = begin < shiftWindow(shiftRef).end.getTime() ? begin : start.getTime();
-    await supabase.from("interventions").insert({ start_at: new Date(inShift).toISOString(), status: "planejada", ...auditCreate(user) });
+    const inShift = begin < end.getTime() ? begin : start.getTime();
+    setDraftNew({ start_at: new Date(inShift).toISOString(), status: "planejada" });
+  };
+
+  const insertNew = async (patch: Partial<Intervention>) => {
+    if (!guard()) return false;
+    await ensureType(patch.type);
+    const { error } = await supabase.from("interventions").insert({ ...(patch as { start_at: string }), ...auditCreate(user) });
+    if (error) { toast.error("Erro ao salvar."); return false; }
+    setDraftNew(null);
+    qc.invalidateQueries({ queryKey: ["interventions"] });
+    toast.success("Intervenção adicionada.");
+    return true;
   };
 
   const duplicate = async (i: Intervention) => {
     if (!guard()) return;
     const { id: _id, created_at: _c, updated_at: _u, ...rest } = i;
     await supabase.from("interventions").insert({ ...rest, ...auditCreate(user) });
+    qc.invalidateQueries({ queryKey: ["interventions"] });
   };
 
   const remove = async (id: string) => {
     if (!guard()) return;
-    if (confirm("Excluir esta intervenção?")) await supabase.from("interventions").delete().eq("id", id);
+    if (confirm("Excluir esta intervenção?")) {
+      await supabase.from("interventions").delete().eq("id", id);
+      qc.invalidateQueries({ queryKey: ["interventions"] });
+    }
   };
 
   const Th = ({ k, children, className }: { k?: SortKey; children: ReactNode; className?: string }) => (
-    <th className={cn("sticky top-0 whitespace-nowrap border-b border-r border-border bg-muted px-2 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide", className)}>
+    <th className={cn("sticky top-0 z-10 whitespace-nowrap border-b border-r border-border bg-muted px-2 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide", className)}>
       {k ? (
         <button className="inline-flex items-center gap-1" onClick={() => setSort({ k, asc: sort.k === k ? !sort.asc : true })}>
           {children} <ArrowUpDown className="h-3 w-3 opacity-50" />
@@ -95,7 +125,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
         <Input placeholder="Filtrar cliente" value={fClient} onChange={(e) => setFClient(e.target.value)} className="h-8 w-32 text-xs" />
         <Input placeholder="Filtrar ticket" value={fTicket} onChange={(e) => setFTicket(e.target.value)} className="h-8 w-28 text-xs" />
         <TypesDialog />
-        <Button size="sm" onClick={add}><Plus className="mr-1 h-3.5 w-3.5" />Nova linha</Button>
+        <Button size="sm" onClick={add} disabled={!!draftNew}><Plus className="mr-1 h-3.5 w-3.5" />Nova linha</Button>
       </header>
       <datalist id="members-list">{members.map((m) => <option key={m.id} value={m.name} />)}</datalist>
       <datalist id="types-list">{types.map((t) => <option key={t.id} value={t.name} />)}</datalist>
@@ -109,47 +139,13 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
             </tr>
           </thead>
           <tbody>
-            {rows.map((i) => {
-              const st = STATUSES.find((s) => s.key === i.status) ?? STATUSES[0]!;
-              const sp = spParts(i.start_at);
-              return (
-                <tr key={i.id} className="group hover:bg-accent/40" title={`Criado por ${i.created_by ?? "—"} em ${spParts(i.created_at).br} · alterado por ${i.updated_by ?? "—"} em ${spParts(i.updated_at).br}`}>
-                  <Td>
-                    <Cell
-                      value={i.type}
-                      list="types-list"
-                      className="w-28"
-                      onCommit={async (v) => {
-                        const name = v?.trim() || null;
-                        if (name && !types.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
-                          await supabase.from("intervention_types").insert({ name });
-                        }
-                        save(i.id, { type: name });
-                      }}
-                    />
-                  </Td>
-                  <Td><Cell value={i.client} onCommit={(v) => save(i.id, { client: v })} className="w-28" /></Td>
-                  <Td><Cell type="date" value={sp.date} onCommit={(v) => v && save(i.id, { start_at: fromSp(v, sp.time).toISOString() })} className="w-32 font-mono" /></Td>
-                  <Td><Cell value={i.ticket} onCommit={(v) => save(i.id, { ticket: v })} className="w-24 font-mono" /></Td>
-                  <Td><Cell type="time" value={sp.time} onCommit={(v) => v && save(i.id, { start_at: fromSp(sp.date, v).toISOString() })} className="w-20 font-mono" /></Td>
-                  <Td><Cell type="datetime-local" value={spParts(i.end_at).dt} onCommit={(v) => save(i.id, { end_at: dtLocalToIso(v ?? "") })} className="w-44 font-mono" /></Td>
-                  <Td><Cell value={i.email_subject} onCommit={(v) => save(i.id, { email_subject: v })} className="w-48" /></Td>
-                  <Td><Cell value={i.sent_by} list="members-list" onCommit={(v) => save(i.id, { sent_by: v })} className="w-28" /></Td>
-                  <Td><Cell type="datetime-local" value={spParts(i.sent_at).dt} onCommit={(v) => save(i.id, { sent_at: dtLocalToIso(v ?? "") })} className="w-44 font-mono" /></Td>
-                  <Td><Cell value={i.notes} onCommit={(v) => save(i.id, { notes: v })} className="w-56" /></Td>
-                  <Td>
-                    <select value={i.status} onChange={(e) => save(i.id, { status: e.target.value })} className={cn("rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
-                      {STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-                    </select>
-                  </Td>
-                  <td className="whitespace-nowrap border-b border-border px-1">
-                    <Button size="icon" variant="ghost" className="h-6 w-6" title="Duplicar" onClick={() => duplicate(i)}><Copy className="h-3 w-3" /></Button>
-                    <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={() => remove(i.id)}><Trash2 className="h-3 w-3" /></Button>
-                  </td>
-                </tr>
-              );
-            })}
-            {rows.length === 0 && (
+            {draftNew && (
+              <Row key="new" item={draftNew} isNew onSave={insertNew} onCancel={() => setDraftNew(null)} />
+            )}
+            {rows.map((i) => (
+              <Row key={i.id} item={i} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={() => remove(i.id)} />
+            ))}
+            {rows.length === 0 && !draftNew && (
               <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
             )}
           </tbody>
@@ -163,17 +159,95 @@ const Td = ({ children }: { children: ReactNode }) => (
   <td className="border-b border-r border-border px-1.5 py-1 align-middle">{children}</td>
 );
 
-function Cell({ value, onCommit, type = "text", className, list }: { value: string | null; onCommit: (v: string | null) => void; type?: string; className?: string; list?: string }) {
-  const [v, setV] = useState(value ?? "");
-  useEffect(() => setV(value ?? ""), [value]);
+const FIELDS = ["type", "client", "ticket", "start_at", "end_at", "email_subject", "sent_by", "sent_at", "notes", "status"] as const;
+
+function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
+  item: Partial<Intervention>; isNew?: boolean;
+  onSave: (patch: Partial<Intervention>) => Promise<boolean>;
+  onCancel?: () => void; onDuplicate?: () => void; onRemove?: () => void;
+}) {
+  const [editing, setEditing] = useState(!!isNew);
+  const [d, setD] = useState<Partial<Intervention>>(item);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (!editing) setD(item); }, [item, editing]);
+
+  const set = (patch: Partial<Intervention>) => { setD((x) => ({ ...x, ...patch })); setEditing(true); };
+  const sp = spParts(d.start_at ?? new Date().toISOString());
+  const st = STATUSES.find((s) => s.key === d.status) ?? STATUSES[0]!;
+  const nn = (v: string) => (v.trim() === "" ? null : v);
+
+  const confirmSave = async () => {
+    const patch: Partial<Intervention> = {};
+    for (const k of FIELDS) {
+      const v = d[k] ?? null;
+      if (isNew || v !== (item[k] ?? null)) (patch as Record<string, unknown>)[k] = typeof v === "string" ? v.trim() || null : v;
+    }
+    if (!isNew && Object.keys(patch).length === 0) { setEditing(false); return; }
+    if (isNew && !patch.start_at) { toast.error("Informe a data e o início."); return; }
+    setBusy(true);
+    const ok = await onSave(patch);
+    setBusy(false);
+    if (ok) setEditing(false);
+  };
+  const cancel = () => { setD(item); setEditing(false); onCancel?.(); };
+
+  const cellProps = {
+    onFocus: () => setEditing(true),
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") { e.preventDefault(); confirmSave(); }
+      if (e.key === "Escape") cancel();
+    },
+  };
+
+  return (
+    <tr
+      className={cn("group", editing ? "bg-warning/10 outline outline-1 outline-warning" : "hover:bg-accent/40")}
+      title={isNew ? "Nova intervenção (não salva)" : `Criado por ${item.created_by ?? "—"} em ${spParts(item.created_at ?? null).br} · alterado por ${item.updated_by ?? "—"} em ${spParts(item.updated_at ?? null).br}`}
+    >
+      <Td><Cell {...cellProps} value={d.type ?? ""} list="types-list" onChange={(v) => set({ type: nn(v) })} className="w-28" /></Td>
+      <Td><Cell {...cellProps} value={d.client ?? ""} onChange={(v) => set({ client: nn(v) })} className="w-28" /></Td>
+      <Td><Cell {...cellProps} type="date" value={sp.date} onChange={(v) => v && set({ start_at: fromSp(v, sp.time).toISOString() })} className="w-32 font-mono" /></Td>
+      <Td><Cell {...cellProps} value={d.ticket ?? ""} onChange={(v) => set({ ticket: nn(v) })} className="w-24 font-mono" /></Td>
+      <Td><Cell {...cellProps} type="time" value={sp.time} onChange={(v) => v && set({ start_at: fromSp(sp.date, v).toISOString() })} className="w-20 font-mono" /></Td>
+      <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.end_at ?? null).dt} onChange={(v) => set({ end_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
+      <Td><Cell {...cellProps} value={d.email_subject ?? ""} onChange={(v) => set({ email_subject: nn(v) })} className="w-48" /></Td>
+      <Td><Cell {...cellProps} value={d.sent_by ?? ""} list="members-list" onChange={(v) => set({ sent_by: nn(v) })} className="w-28" /></Td>
+      <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.sent_at ?? null).dt} onChange={(v) => set({ sent_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
+      <Td><Cell {...cellProps} value={d.notes ?? ""} onChange={(v) => set({ notes: nn(v) })} className="w-56" /></Td>
+      <Td>
+        <select value={d.status ?? "planejada"} onFocus={() => setEditing(true)} onChange={(e) => set({ status: e.target.value })} className={cn("rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
+          {STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+      </Td>
+      <td className="whitespace-nowrap border-b border-border px-1">
+        {editing ? (
+          <>
+            <Button size="icon" className="h-6 w-6 bg-success text-primary-foreground hover:bg-success/90" title="Confirmar" disabled={busy} onClick={confirmSave}><Check className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" className="ml-1 h-6 w-6" title="Cancelar" disabled={busy} onClick={cancel}><X className="h-3.5 w-3.5" /></Button>
+          </>
+        ) : (
+          <>
+            <Button size="icon" variant="ghost" className="h-6 w-6" title="Duplicar" onClick={onDuplicate}><Copy className="h-3 w-3" /></Button>
+            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={onRemove}><Trash2 className="h-3 w-3" /></Button>
+          </>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+function Cell({ value, onChange, type = "text", className, list, onFocus, onKeyDown }: {
+  value: string; onChange: (v: string) => void; type?: string; className?: string; list?: string;
+  onFocus?: () => void; onKeyDown?: (e: React.KeyboardEvent) => void;
+}) {
   return (
     <input
       type={type}
       list={list}
-      value={v}
-      onChange={(e) => setV(e.target.value)}
-      onBlur={() => v !== (value ?? "") && onCommit(v.trim() === "" ? null : v)}
-      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onFocus={onFocus}
+      onKeyDown={onKeyDown}
       className={cn("rounded-sm bg-transparent px-1 py-0.5 outline-none focus:bg-background focus:ring-1 focus:ring-ring", className)}
     />
   );
