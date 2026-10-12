@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { auditCreate, auditUpdate } from "@/lib/identity";
 import { useInterventions, useMembers, useTypes, type Intervention } from "@/lib/data";
-import { dtLocalToIso, fromSp, shiftWindow, spParts, type ShiftRef } from "@/lib/shifts";
+import { addDays, dtLocalToIso, fromSp, shiftWindow, spParts, type ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
 export const STATUSES = [
@@ -209,7 +209,11 @@ function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
       <Td><Cell {...cellProps} type="date" value={sp.date} onChange={(v) => v && set({ start_at: fromSp(v, sp.time).toISOString() })} className="w-32 font-mono" /></Td>
       <Td><Cell {...cellProps} value={d.ticket ?? ""} onChange={(v) => set({ ticket: nn(v) })} className="w-24 font-mono" /></Td>
       <Td><Cell {...cellProps} type="time" value={sp.time} onChange={(v) => v && set({ start_at: fromSp(sp.date, v).toISOString() })} className="w-20 font-mono" /></Td>
-      <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.end_at ?? null).dt} onChange={(v) => set({ end_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
+      <Td><Cell {...cellProps} type="time" value={d.end_at ? spParts(d.end_at).time : ""} onChange={(v) => {
+        if (!v) return set({ end_at: null });
+        const date = v < sp.time ? addDays(sp.date, 1) : sp.date;
+        set({ end_at: fromSp(date, v).toISOString() });
+      }} className="w-20 font-mono" /></Td>
       <Td><Cell {...cellProps} value={d.email_subject ?? ""} onChange={(v) => set({ email_subject: nn(v) })} className="w-48" /></Td>
       <Td><Cell {...cellProps} value={d.sent_by ?? ""} list="members-list" onChange={(v) => set({ sent_by: nn(v) })} className="w-28" /></Td>
       <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.sent_at ?? null).dt} onChange={(v) => set({ sent_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
