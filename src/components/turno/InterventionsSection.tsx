@@ -2,7 +2,7 @@ import type React from "react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpDown, Check, Copy, Plus, Settings2, Trash2, X } from "lucide-react";
+import { ArrowUpDown, Check, Copy, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,7 +192,7 @@ function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
   const cancel = () => { setD(item); setEditing(false); onCancel?.(); };
 
   const cellProps = {
-    onFocus: () => setEditing(true),
+    readOnly: !editing,
     onKeyDown: (e: React.KeyboardEvent) => {
       if (e.key === "Enter") { e.preventDefault(); confirmSave(); }
       if (e.key === "Escape") cancel();
@@ -219,7 +219,7 @@ function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
       <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.sent_at ?? null).dt} onChange={(v) => set({ sent_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
       <Td><Cell {...cellProps} value={d.notes ?? ""} onChange={(v) => set({ notes: nn(v) })} className="w-56" /></Td>
       <Td>
-        <select value={d.status ?? "planejada"} onFocus={() => setEditing(true)} onChange={(e) => set({ status: e.target.value })} className={cn("rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
+        <select value={d.status ?? "planejada"} disabled={!editing} onChange={(e) => set({ status: e.target.value })} className={cn("rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
           {STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
       </Td>
@@ -231,6 +231,7 @@ function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
           </>
         ) : (
           <>
+            <Button size="icon" variant="ghost" className="h-6 w-6" title="Editar" onClick={() => setEditing(true)}><Pencil className="h-3 w-3" /></Button>
             <Button size="icon" variant="ghost" className="h-6 w-6" title="Duplicar" onClick={onDuplicate}><Copy className="h-3 w-3" /></Button>
             <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={onRemove}><Trash2 className="h-3 w-3" /></Button>
           </>
@@ -240,9 +241,9 @@ function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
   );
 }
 
-function Cell({ value, onChange, type = "text", className, list, onFocus, onKeyDown }: {
+function Cell({ value, onChange, type = "text", className, list, readOnly, onKeyDown }: {
   value: string; onChange: (v: string) => void; type?: string; className?: string; list?: string;
-  onFocus?: () => void; onKeyDown?: (e: React.KeyboardEvent) => void;
+  readOnly?: boolean; onKeyDown?: (e: React.KeyboardEvent) => void;
 }) {
   return (
     <input
@@ -250,9 +251,10 @@ function Cell({ value, onChange, type = "text", className, list, onFocus, onKeyD
       list={list}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      onFocus={onFocus}
+      readOnly={readOnly}
+      tabIndex={readOnly ? -1 : undefined}
       onKeyDown={onKeyDown}
-      className={cn("rounded-sm bg-transparent px-1 py-0.5 outline-none focus:bg-background focus:ring-1 focus:ring-ring", className)}
+      className={cn("rounded-sm bg-transparent px-1 py-0.5 outline-none", readOnly ? "cursor-default" : "bg-background ring-1 ring-ring/40 focus:ring-ring", className)}
     />
   );
 }
