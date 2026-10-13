@@ -1,6 +1,6 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 
-export const TZ = "America/Sao_Paulo";
+export const TZ = "Europe/Lisbon";
 
 export type ShiftKey = "manha" | "tarde" | "noite";
 export interface ShiftRef {

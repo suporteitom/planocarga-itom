@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { interventionInShift, nextShift, prevShift, shiftOf, shiftWindow } from "@/lib/shifts";
 
-describe("turnos (America/Sao_Paulo) — o dia começa pela noite", () => {
+describe("turnos (Europe/Lisbon) — o dia começa pela noite", () => {
   it("02:00 em SP é a noite do próprio dia", () => {
     expect(shiftOf(new Date("2026-10-10T05:00:00Z"))).toEqual({ date: "2026-10-10", shift: "noite" });
   });
