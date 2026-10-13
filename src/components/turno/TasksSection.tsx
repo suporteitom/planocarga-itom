@@ -1,0 +1,114 @@
+import { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { auditCreate, auditUpdate } from "@/lib/identity";
+import { useTasks, type TaskTemplate } from "@/lib/data";
+import { SHIFTS, shiftLabel, type ShiftRef } from "@/lib/shifts";
+import { cn } from "@/lib/utils";
+
+const RESULTS = [
+  { key: "ok", label: "OK", cls: "bg-success text-primary-foreground" },
+  { key: "nok", label: "NOK", cls: "bg-destructive text-destructive-foreground" },
+  { key: "na", label: "N/A", cls: "bg-muted-foreground text-background" },
+  { key: "pendente", label: "Pendente", cls: "bg-warning text-foreground" },
+];
+
+export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
+  const qc = useQueryClient();
+  const { data } = useTasks(shiftRef.date);
+  const [onlyShift, setOnlyShift] = useState(true);
+  const [form, setForm] = useState({ category: "Tarefas Diárias ITOM", shift: shiftRef.shift as string, cycle: "DIÁRIO", time_start: "", time_end: "", title: "" });
+  const refresh = () => qc.invalidateQueries({ queryKey: ["tasks"] });
+  const need = () => { if (!user) { toast.error("Escolha seu nome no topo antes de registrar."); return false; } return true; };
+
+  const templates = (data?.templates ?? []).filter((t) => !onlyShift || t.shift === shiftRef.shift);
+  const results = new Map((data?.results ?? []).map((r) => [r.template_id, r]));
+  const groups = new Map<string, TaskTemplate[]>();
+  templates.forEach((t) => groups.set(t.category, [...(groups.get(t.category) ?? []), t]));
+
+  const setResult = async (t: TaskTemplate, patch: { result?: string; notes?: string }) => {
+    if (!need()) return;
+    const ex = results.get(t.id);
+    const { error } = await supabase.from("task_results").upsert(
+      { template_id: t.id, shift_date: shiftRef.date, result: ex?.result ?? "pendente", notes: ex?.notes ?? null, ...(ex ? {} : auditCreate(user)), ...auditUpdate(user), ...patch },
+      { onConflict: "template_id,shift_date" },
+    );
+    if (error) toast.error("Erro ao salvar resultado."); else refresh();
+  };
+
+  const add = async () => {
+    if (!need() || !form.title.trim()) return;
+    const { error } = await supabase.from("task_templates").insert({ ...form, title: form.title.trim(), time_start: form.time_start || null, time_end: form.time_end || null, ...auditCreate(user) });
+    if (error) { toast.error("Erro ao criar tarefa."); return; }
+    setForm({ ...form, title: "", time_start: "", time_end: "" });
+    refresh();
+  };
+
+  const remove = async (t: TaskTemplate) => {
+    if (!confirm(`Excluir a tarefa "${t.title}"?`)) return;
+    const { error } = await supabase.from("task_templates").update({ active: false, ...auditUpdate(user) }).eq("id", t.id);
+    if (error) toast.error("Erro ao excluir."); else refresh();
+  };
+
+  return (
+    <section className="rounded border border-border bg-card">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+        <h2 className="text-sm font-semibold">Tarefas do Dia</h2>
+        <label className="ml-auto flex items-center gap-1 text-xs">
+          <input type="checkbox" checked={onlyShift} onChange={(e) => setOnlyShift(e.target.checked)} /> Só turno {shiftLabel(shiftRef.shift)}
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2 border-b border-border p-3">
+        <Input className="h-8 w-48" list="task-cats" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Categoria" />
+        <datalist id="task-cats">{[...new Set((data?.templates ?? []).map((t) => t.category))].map((c) => <option key={c} value={c} />)}</datalist>
+        <select className="h-8 rounded border border-input bg-background px-2 text-sm" value={form.shift} onChange={(e) => setForm({ ...form, shift: e.target.value })}>
+          {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+        <Input className="h-8 w-28" value={form.cycle} onChange={(e) => setForm({ ...form, cycle: e.target.value })} placeholder="Ciclo" />
+        <Input className="h-8 w-24" type="time" value={form.time_start} onChange={(e) => setForm({ ...form, time_start: e.target.value })} />
+        <Input className="h-8 w-24" type="time" value={form.time_end} onChange={(e) => setForm({ ...form, time_end: e.target.value })} />
+        <Input className="h-8 min-w-48 flex-1" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nova tarefa" />
+        <Button size="sm" onClick={add}><Plus className="mr-1 h-4 w-4" />Nova tarefa</Button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted text-left text-xs">
+            <tr><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora I</th><th className="p-2">Hora F</th><th className="p-2">Tarefa</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
+          </thead>
+          {[...groups].map(([cat, items]) => (
+            <tbody key={cat}>
+              <tr><td colSpan={8} className="bg-secondary px-2 py-1 text-xs font-semibold">{cat}</td></tr>
+              {items.map((t) => {
+                const r = results.get(t.id);
+                return (
+                  <tr key={t.id} className="border-t border-border">
+                    <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
+                    <td className="p-2 text-xs">{t.cycle}</td>
+                    <td className="p-2 font-mono text-xs">{t.time_start ?? ""}</td>
+                    <td className="p-2 font-mono text-xs">{t.time_end ?? ""}</td>
+                    <td className="p-2">{t.title}</td>
+                    <td className="p-2">
+                      <div className="flex gap-1">
+                        {RESULTS.map((o) => (
+                          <button key={o.key} type="button" onClick={() => setResult(t, { result: o.key })}
+                            className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", (r?.result ?? "pendente") === o.key ? o.cls : "bg-muted text-muted-foreground")}>{o.label}</button>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-2"><Input key={r?.notes ?? ""} className="h-7" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
+                    <td className="p-2"><Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)}><Trash2 className="h-4 w-4" /></Button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ))}
+        </table>
+        {!templates.length && <p className="p-4 text-sm text-muted-foreground">Nenhuma tarefa para este turno.</p>}
+      </div>
+    </section>
+  );
+}
