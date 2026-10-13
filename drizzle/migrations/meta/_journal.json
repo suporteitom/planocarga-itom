@@ -15,6 +15,13 @@
       "when": 1791756909611,
       "tag": "0001_shift_lifecycle",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791851293281,
+      "tag": "0002_migration",
+      "breakpoints": true
     }
   ]
 }
