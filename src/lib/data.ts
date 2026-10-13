@@ -83,14 +83,14 @@ export async function setShiftStatus(ref: ShiftRef, status: "pendente" | "em_and
 }
 
 /** Recados do turno + recados em aberto de turnos anteriores. */
-export function useMessages(_ref?: ShiftRef) {
+export function useMessages(_ref?: ShiftRef, category: string = "recados") {
   return useQuery({
-    queryKey: ["messages", "all"],
+    queryKey: ["messages", category],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
         .select("*")
-        .eq("category", "recados")
+        .eq("category", category)
         .order("occurred_at", { ascending: false });
       if (error) throw error;
       return { own: data as Message[], carried: [] as Message[] };

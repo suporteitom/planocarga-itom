@@ -12,8 +12,8 @@ import { useMessages, type Message } from "@/lib/data";
 import { brDate, dtLocalToIso, shiftLabel, spParts, type ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
-export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
-  const { data } = useMessages(shiftRef);
+export function MessagesSection({ shiftRef, user, category = "recados", title = "Recados" }: { shiftRef: ShiftRef; user: string; category?: string; title?: string }) {
+  const { data } = useMessages(shiftRef, category);
   const [body, setBody] = useState("");
   const [important, setImportant] = useState(false);
   const [when, setWhen] = useState("");
@@ -23,7 +23,7 @@ export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
     if (!user) { toast.error("Escolha seu nome no topo antes de registrar."); return; }
     if (!body.trim()) { return; }
     const { error } = await supabase.from("messages").insert({
-      category: "recados",
+      category,
       shift_date: shiftRef.date,
       shift: shiftRef.shift,
       body: body.trim(),
@@ -44,7 +44,7 @@ export function MessagesSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
   return (
     <section className="min-w-0 rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide">Recados</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide">{title}</h2>
         <span className="font-mono text-xs text-muted-foreground">{own.length} no turno · {carried.length} pendentes</span>
       </header>
 
