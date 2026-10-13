@@ -23,12 +23,12 @@ export function addDays(date: string, n: number): string {
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 }
 
-/** Converte data/hora local de São Paulo para Date (UTC). */
+/** Converte data/hora local de Lisboa para Date (UTC). */
 export function fromSp(date: string, time = "00:00"): Date {
   return fromZonedTime(`${date}T${time.length === 5 ? time + ":00" : time}`, TZ);
 }
 
-/** Partes locais (São Paulo) de um instante. */
+/** Partes locais (Lisboa) de um instante. */
 export function spParts(iso: string | Date | null | undefined) {
   if (!iso) return { date: "", time: "", dt: "", br: "" };
   const d = typeof iso === "string" ? new Date(iso) : iso;
