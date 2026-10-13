@@ -27,7 +27,6 @@ export const Route = createFileRoute("/")({
 });
 
 const FUTURE_TABS = [
-  { key: "outros", label: "Outros Recados" },
   { key: "tarefas", label: "Tarefas do Dia" },
   { key: "jobs", label: "Monitoramento de Jobs" },
 ];
@@ -38,11 +37,30 @@ function Index() {
   const [shiftRef, setShiftRef] = useState<ShiftRef>(() => shiftOf());
   const [tab, setTab] = useState("recados");
   const { data: msgs } = useMessages(shiftRef);
+  const { data: others } = useMessages(shiftRef, "outros");
   const { data: ints = [] } = useInterventions(shiftRef);
   const { data: att } = useAttendance(shiftRef);
   const closed = att?.status === "encerrado";
 
   const counts = { messages: msgs?.own.length ?? 0, carried: msgs?.carried.length ?? 0, interventions: ints.length };
+  const tabCls = "rounded-b-none border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-background";
+
+  const header = (
+    <>
+      <ShiftHeader
+        shiftRef={shiftRef}
+        setShiftRef={setShiftRef}
+        user={name}
+        counts={counts}
+        onExport={() => exportXlsx(`turno_${shiftRef.date}_${shiftLabel(shiftRef.shift)}.xlsx`, [...(msgs?.own ?? []), ...(others?.own ?? [])], ints)}
+      />
+      {closed && (
+        <div className="border-b border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
+          Turno encerrado — os registros estão bloqueados. Use "Reabrir turno" para editar.
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,11 +79,12 @@ function Index() {
           </div>
           <div className="overflow-x-auto px-3 md:px-4">
             <TabsList className="mt-2 h-auto rounded-none bg-transparent p-0">
-              <TabsTrigger value="recados" className="rounded-b-none border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-background">Recados e Intervenções</TabsTrigger>
+              <TabsTrigger value="recados" className={tabCls}>Recados e Intervenções</TabsTrigger>
+              <TabsTrigger value="outros" className={tabCls}>Outros Recados</TabsTrigger>
               {FUTURE_TABS.map((t) => (
                 <TabsTrigger key={t.key} value={t.key} disabled className="rounded-b-none">{t.label} <span className="ml-1 text-[10px]">(em breve)</span></TabsTrigger>
               ))}
-              <TabsTrigger value="historico" className="rounded-b-none border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-background">Histórico</TabsTrigger>
+              <TabsTrigger value="historico" className={tabCls}>Histórico</TabsTrigger>
             </TabsList>
           </div>
         </header>
@@ -77,21 +96,16 @@ function Index() {
         )}
 
         <TabsContent value="recados" className="mt-0">
-          <ShiftHeader
-            shiftRef={shiftRef}
-            setShiftRef={setShiftRef}
-            user={name}
-            counts={counts}
-            onExport={() => exportXlsx(`turno_${shiftRef.date}_${shiftLabel(shiftRef.shift)}.xlsx`, [...(msgs?.carried ?? []), ...(msgs?.own ?? [])], ints)}
-          />
-          {closed && (
-            <div className="border-b border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
-              Turno encerrado — os registros estão bloqueados. Use "Reabrir turno" para editar.
-            </div>
-          )}
+          {header}
           <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
             <MessagesSection shiftRef={shiftRef} user={name} />
             <InterventionsSection shiftRef={shiftRef} user={name} />
+          </fieldset>
+        </TabsContent>
+        <TabsContent value="outros" className="mt-0">
+          {header}
+          <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
+            <MessagesSection shiftRef={shiftRef} user={name} category="outros" title="Outros Recados" />
           </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
