@@ -32,7 +32,7 @@ export function ShiftHeader({
   const isCurrent = now.date === shiftRef.date && now.shift === shiftRef.shift;
   const hasSomething = counts.messages + counts.interventions > 0;
   const fmt = (iso?: string | null) =>
-    iso ? new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+    iso ? new Date(iso).toLocaleString("pt-PT", { timeZone: "Europe/Lisbon", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
 
   const changeStatus = async (s: "em_andamento" | "encerrado") => {
     if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
