@@ -103,9 +103,8 @@ function Index() {
           </fieldset>
         </TabsContent>
         <TabsContent value="outros" className="mt-0">
-          {header}
-          <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
-            <MessagesSection shiftRef={shiftRef} user={name} category="outros" title="Outros Recados" />
+          <fieldset className="grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4">
+            <MessagesSection shiftRef={shiftRef} user={name} category="outros" title="Outros Recados" listClassName="max-h-[30rem]" />
           </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
