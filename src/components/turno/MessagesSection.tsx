@@ -12,7 +12,7 @@ import { useMessages, type Message } from "@/lib/data";
 import { brDate, dtLocalToIso, shiftLabel, spParts, type ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
-export function MessagesSection({ shiftRef, user, category = "recados", title = "Recados" }: { shiftRef: ShiftRef; user: string; category?: string; title?: string }) {
+export function MessagesSection({ shiftRef, user, category = "recados", title = "Recados", listClassName = "max-h-[18rem]" }: { shiftRef: ShiftRef; user: string; category?: string; title?: string; listClassName?: string }) {
   const { data } = useMessages(shiftRef, category);
   const [body, setBody] = useState("");
   const [important, setImportant] = useState(false);
@@ -66,7 +66,7 @@ export function MessagesSection({ shiftRef, user, category = "recados", title = 
         </div>
       </div>
 
-      <ul className="divide-y divide-border max-h-[18rem] overflow-y-auto">
+      <ul className={cn("divide-y divide-border overflow-y-auto", listClassName)}>
         {carried.map((m) => <MessageRow key={m.id} m={m} user={user} carried />)}
         {own.map((m) => <MessageRow key={m.id} m={m} user={user} />)}
         {carried.length + own.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">Nenhum recado neste turno.</li>}
