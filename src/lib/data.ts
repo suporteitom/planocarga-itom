@@ -124,6 +124,8 @@ export function useRealtimeSync() {
       shift_attendance: ["attendance"],
       messages: ["messages"],
       interventions: ["interventions"],
+      task_templates: ["tasks"],
+      task_results: ["tasks"],
     };
     let ch = supabase.channel("passagem-turno");
     for (const table of Object.keys(map)) {
@@ -136,4 +138,22 @@ export function useRealtimeSync() {
       supabase.removeChannel(ch);
     };
   }, [qc]);
+}
+
+export type TaskTemplate = Tables<"task_templates">;
+export type TaskResult = Tables<"task_results">;
+
+export function useTasks(date: string) {
+  return useQuery({
+    queryKey: ["tasks", date],
+    queryFn: async () => {
+      const [t, r] = await Promise.all([
+        supabase.from("task_templates").select("*").eq("active", true).order("category").order("sort").order("time_start"),
+        supabase.from("task_results").select("*").eq("shift_date", date),
+      ]);
+      if (t.error) throw t.error;
+      if (r.error) throw r.error;
+      return { templates: t.data, results: r.data };
+    },
+  });
 }

@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShiftHeader } from "@/components/turno/ShiftHeader";
 import { MessagesSection } from "@/components/turno/MessagesSection";
 import { InterventionsSection } from "@/components/turno/InterventionsSection";
+import { TasksSection } from "@/components/turno/TasksSection";
 import { HistoryPanel } from "@/components/turno/HistoryPanel";
 import { NamePicker } from "@/components/turno/NamePicker";
 import { useCurrentUser } from "@/lib/identity";
@@ -27,7 +28,6 @@ export const Route = createFileRoute("/")({
 });
 
 const FUTURE_TABS = [
-  { key: "tarefas", label: "Tarefas do Dia" },
   { key: "jobs", label: "Monitoramento de Jobs" },
 ];
 
@@ -81,6 +81,7 @@ function Index() {
             <TabsList className="mt-2 h-auto rounded-none bg-transparent p-0">
               <TabsTrigger value="recados" className={tabCls}>Recados e Intervenções</TabsTrigger>
               <TabsTrigger value="outros" className={tabCls}>Outros Recados</TabsTrigger>
+              <TabsTrigger value="tarefas" className={tabCls}>Tarefas do Dia</TabsTrigger>
               {FUTURE_TABS.map((t) => (
                 <TabsTrigger key={t.key} value={t.key} disabled className="rounded-b-none">{t.label} <span className="ml-1 text-[10px]">(em breve)</span></TabsTrigger>
               ))}
@@ -105,6 +106,12 @@ function Index() {
         <TabsContent value="outros" className="mt-0">
           <fieldset className="grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4">
             <MessagesSection shiftRef={shiftRef} user={name} category="outros" title="Outros Recados" listClassName="max-h-[30rem]" />
+          </fieldset>
+        </TabsContent>
+        <TabsContent value="tarefas" className="mt-0">
+          {header}
+          <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
+            <TasksSection shiftRef={shiftRef} user={name} />
           </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
