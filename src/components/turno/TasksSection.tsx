@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,21 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
   const qc = useQueryClient();
   const { data } = useTasks(shiftRef.date);
   const [onlyShift, setOnlyShift] = useState(true);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<{ category: string; shift: string; cycle: string; time_start: string; time_end: string; title: string } | null>(null);
+
+  const startEdit = (t: TaskTemplate) => {
+    setEditId(t.id);
+    setDraft({ category: t.category, shift: t.shift, cycle: t.cycle, time_start: t.time_start ?? "", time_end: t.time_end ?? "", title: t.title });
+  };
+  const cancelEdit = () => { setEditId(null); setDraft(null); };
+  const saveEdit = async () => {
+    if (!need() || !editId || !draft || !draft.title.trim()) return;
+    const { error } = await supabase.from("task_templates").update({ ...draft, title: draft.title.trim(), time_start: draft.time_start || null, time_end: draft.time_end || null, ...auditUpdate(user) }).eq("id", editId);
+    if (error) { toast.error("Erro ao salvar tarefa."); return; }
+    cancelEdit();
+    refresh();
+  };
   const [form, setForm] = useState({ category: "Tarefas Diárias ITOM", shift: shiftRef.shift as string, cycle: "DIÁRIO", time_start: "", time_end: "", title: "" });
   const refresh = () => qc.invalidateQueries({ queryKey: ["tasks"] });
   const need = () => { if (!user) { toast.error("Escolha seu nome no topo antes de registrar."); return false; } return true; };
@@ -84,13 +99,30 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
               <tr><td colSpan={8} className="bg-secondary px-2 py-1 text-xs font-semibold">{cat}</td></tr>
               {items.map((t) => {
                 const r = results.get(t.id);
+                const editing = editId === t.id && draft;
                 return (
                   <tr key={t.id} className="border-t border-border">
-                    <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
-                    <td className="p-2 text-xs">{t.cycle}</td>
-                    <td className="p-2 font-mono text-xs">{t.time_start ?? ""}</td>
-                    <td className="p-2 font-mono text-xs">{t.time_end ?? ""}</td>
-                    <td className="p-2">{t.title}</td>
+                    {editing ? (
+                      <>
+                        <td className="p-2">
+                          <select className="h-7 rounded border border-input bg-background px-1 text-xs" value={draft.shift} onChange={(e) => setDraft({ ...draft, shift: e.target.value })}>
+                            {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                          </select>
+                        </td>
+                        <td className="p-2"><Input className="h-7 w-24" value={draft.cycle} onChange={(e) => setDraft({ ...draft, cycle: e.target.value })} /></td>
+                        <td className="p-2"><Input className="h-7 w-20" type="time" value={draft.time_start} onChange={(e) => setDraft({ ...draft, time_start: e.target.value })} /></td>
+                        <td className="p-2"><Input className="h-7 w-20" type="time" value={draft.time_end} onChange={(e) => setDraft({ ...draft, time_end: e.target.value })} /></td>
+                        <td className="p-2"><Input className="h-7" autoFocus value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }} /></td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
+                        <td className="p-2 text-xs">{t.cycle}</td>
+                        <td className="p-2 font-mono text-xs">{t.time_start ?? ""}</td>
+                        <td className="p-2 font-mono text-xs">{t.time_end ?? ""}</td>
+                        <td className="p-2">{t.title}</td>
+                      </>
+                    )}
                     <td className="p-2">
                       <div className="flex gap-1">
                         {RESULTS.map((o) => (
@@ -100,7 +132,21 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
                       </div>
                     </td>
                     <td className="p-2"><Input key={r?.notes ?? ""} className="h-7" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
-                    <td className="p-2"><Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)}><Trash2 className="h-4 w-4" /></Button></td>
+                    <td className="p-2">
+                      <div className="flex gap-1">
+                        {editing ? (
+                          <>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={saveEdit} title="Confirmar"><Check className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit} title="Cancelar"><X className="h-4 w-4" /></Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(t)} title="Editar"><Pencil className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)} title="Excluir"><Trash2 className="h-4 w-4" /></Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
