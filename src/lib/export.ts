@@ -1,7 +1,12 @@
-import type { Intervention, Message } from "./data";
+import type { Intervention, Message, TaskResult, TaskTemplate } from "./data";
 import { shiftLabel, spParts } from "./shifts";
 
-export async function exportXlsx(filename: string, messages: Message[], interventions: Intervention[]) {
+export async function exportXlsx(
+  filename: string,
+  messages: Message[],
+  interventions: Intervention[],
+  tasks?: { templates: TaskTemplate[]; results: TaskResult[] },
+) {
   const XLSX = await import("xlsx");
   const wb = XLSX.utils.book_new();
   const msgs = messages.map((m) => ({
@@ -33,5 +38,23 @@ export async function exportXlsx(filename: string, messages: Message[], interven
   }));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(msgs.length ? msgs : [{ Recado: "" }]), "Recados");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ints.length ? ints : [{ Tipo: "" }]), "Intervenções");
+  if (tasks) {
+    const resMap = new Map(tasks.results.map((r) => [r.template_id, r]));
+    const rows = tasks.templates.map((t) => {
+      const r = resMap.get(t.id);
+      return {
+        Categoria: t.category,
+        Turno: shiftLabel(t.shift),
+        Ciclo: t.cycle,
+        "Hora I": t.time_start ?? "",
+        "Hora F": t.time_end ?? "",
+        Tarefa: t.title,
+        Resultado: r?.result ?? "pendente",
+        "Obs.": r?.notes ?? "",
+        "Alterado por": r?.updated_by ?? "",
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ Tarefa: "" }]), "Tarefas");
+  }
   XLSX.writeFile(wb, filename);
 }
