@@ -90,7 +90,7 @@ export { pad };
 /** Whether a task cycle (DIÁRIO, DU, "segunda-feira", "MENSAL - DIA 5"...) applies on a YYYY-MM-DD date. */
 export function cycleAppliesOn(cycle: string, date: string): boolean {
   const c = cycle.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const [y, m, d] = date.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = date.split("-").map(Number);
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   if (c.startsWith("diario")) return true;
   if (c === "du") return wd >= 1 && wd <= 5;
