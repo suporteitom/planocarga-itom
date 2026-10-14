@@ -132,7 +132,21 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
                       </div>
                     </td>
                     <td className="p-2"><Input key={r?.notes ?? ""} className="h-7" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
-                    <td className="p-2"><Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)}><Trash2 className="h-4 w-4" /></Button></td>
+                    <td className="p-2">
+                      <div className="flex gap-1">
+                        {editing ? (
+                          <>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={saveEdit} title="Confirmar"><Check className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit} title="Cancelar"><X className="h-4 w-4" /></Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(t)} title="Editar"><Pencil className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)} title="Excluir"><Trash2 className="h-4 w-4" /></Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
