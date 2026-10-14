@@ -78,19 +78,18 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
 
   return (
     <section className="rounded border border-border bg-card">
+      <div className="bg-destructive py-2 text-center text-lg font-semibold text-destructive-foreground">Tarefas Diárias ITOM</div>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-        <h2 className="text-sm font-semibold">Tarefas do Dia</h2>
         <label className="ml-auto flex items-center gap-1 text-xs">
           <input type="checkbox" checked={onlyShift} onChange={(e) => setOnlyShift(e.target.checked)} /> Só turno {shiftLabel(shiftRef.shift)}
         </label>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-border p-3">
-        <Input className="h-8 w-48" list="task-cats" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Categoria" />
-        <datalist id="task-cats">{[...new Set((data?.templates ?? []).map((t) => t.category))].map((c) => <option key={c} value={c} />)}</datalist>
         <select className="h-8 rounded border border-input bg-background px-2 text-sm" value={form.shift} onChange={(e) => setForm({ ...form, shift: e.target.value })}>
           {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
-        <Input className="h-8 w-28" value={form.cycle} onChange={(e) => setForm({ ...form, cycle: e.target.value })} placeholder="Ciclo" />
+        <Input className="h-8 w-28" list="task-cycles" value={form.cycle} onChange={(e) => setForm({ ...form, cycle: e.target.value })} placeholder="Ciclo" />
+        <datalist id="task-cycles">{["DIÁRIO", "DU", "segunda-feira", "sexta-feira", "sábado", "domingo", "MENSAL - DIA 5"].map((c) => <option key={c} value={c} />)}</datalist>
         <Input className="h-8 w-24" type="time" value={form.time_start} onChange={(e) => setForm({ ...form, time_start: e.target.value })} />
         <Input className="h-8 w-24" type="time" value={form.time_end} onChange={(e) => setForm({ ...form, time_end: e.target.value })} />
         <Input className="h-8 min-w-48 flex-1" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nova tarefa" />
@@ -98,17 +97,16 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-muted text-left text-xs">
-            <tr><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora I</th><th className="p-2">Hora F</th><th className="p-2">Tarefa</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
+          <thead className="bg-destructive/70 text-center text-xs text-destructive-foreground">
+            <tr><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora I</th><th className="p-2">Hora F</th><th className="p-2 text-left">Tarefa</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
           </thead>
           {[...groups].map(([cat, items]) => (
             <tbody key={cat}>
-              <tr><td colSpan={8} className="bg-secondary px-2 py-1 text-xs font-semibold">{cat}</td></tr>
               {items.map((t) => {
                 const r = results.get(t.id);
                 const editing = editId === t.id && draft;
                 return (
-                  <tr key={t.id} className="border-t border-border">
+                  <tr key={t.id} className={cn("border-t border-border", rowCls[t.shift])}>
                     {editing ? (
                       <>
                         <td className="p-2">
