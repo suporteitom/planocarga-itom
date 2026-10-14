@@ -9,7 +9,7 @@ import { TasksSection } from "@/components/turno/TasksSection";
 import { HistoryPanel } from "@/components/turno/HistoryPanel";
 import { NamePicker } from "@/components/turno/NamePicker";
 import { useCurrentUser } from "@/lib/identity";
-import { useAttendance, useInterventions, useMessages, useRealtimeSync } from "@/lib/data";
+import { useAttendance, useInterventions, useMessages, useRealtimeSync, useTasks } from "@/lib/data";
 import { exportXlsx } from "@/lib/export";
 import { shiftLabel, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts";
 
@@ -40,6 +40,7 @@ function Index() {
   const { data: others } = useMessages(shiftRef, "outros");
   const { data: ints = [] } = useInterventions(shiftRef);
   const { data: att } = useAttendance(shiftRef);
+  const { data: tasks } = useTasks(shiftRef.date);
   const closed = att?.status === "encerrado";
 
   const counts = { messages: msgs?.own.length ?? 0, carried: msgs?.carried.length ?? 0, interventions: ints.length };
@@ -52,7 +53,7 @@ function Index() {
         setShiftRef={setShiftRef}
         user={name}
         counts={counts}
-        onExport={() => exportXlsx(`turno_${shiftRef.date}_${shiftLabel(shiftRef.shift)}.xlsx`, [...(msgs?.own ?? []), ...(others?.own ?? [])], ints)}
+        onExport={() => exportXlsx(`turno_${shiftRef.date}_${shiftLabel(shiftRef.shift)}.xlsx`, [...(msgs?.own ?? []), ...(others?.own ?? [])], ints, tasks)}
       />
       {closed && (
         <div className="border-b border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
