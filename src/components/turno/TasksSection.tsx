@@ -99,13 +99,30 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
               <tr><td colSpan={8} className="bg-secondary px-2 py-1 text-xs font-semibold">{cat}</td></tr>
               {items.map((t) => {
                 const r = results.get(t.id);
+                const editing = editId === t.id && draft;
                 return (
                   <tr key={t.id} className="border-t border-border">
-                    <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
-                    <td className="p-2 text-xs">{t.cycle}</td>
-                    <td className="p-2 font-mono text-xs">{t.time_start ?? ""}</td>
-                    <td className="p-2 font-mono text-xs">{t.time_end ?? ""}</td>
-                    <td className="p-2">{t.title}</td>
+                    {editing ? (
+                      <>
+                        <td className="p-2">
+                          <select className="h-7 rounded border border-input bg-background px-1 text-xs" value={draft.shift} onChange={(e) => setDraft({ ...draft, shift: e.target.value })}>
+                            {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                          </select>
+                        </td>
+                        <td className="p-2"><Input className="h-7 w-24" value={draft.cycle} onChange={(e) => setDraft({ ...draft, cycle: e.target.value })} /></td>
+                        <td className="p-2"><Input className="h-7 w-20" type="time" value={draft.time_start} onChange={(e) => setDraft({ ...draft, time_start: e.target.value })} /></td>
+                        <td className="p-2"><Input className="h-7 w-20" type="time" value={draft.time_end} onChange={(e) => setDraft({ ...draft, time_end: e.target.value })} /></td>
+                        <td className="p-2"><Input className="h-7" autoFocus value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }} /></td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
+                        <td className="p-2 text-xs">{t.cycle}</td>
+                        <td className="p-2 font-mono text-xs">{t.time_start ?? ""}</td>
+                        <td className="p-2 font-mono text-xs">{t.time_end ?? ""}</td>
+                        <td className="p-2">{t.title}</td>
+                      </>
+                    )}
                     <td className="p-2">
                       <div className="flex gap-1">
                         {RESULTS.map((o) => (
