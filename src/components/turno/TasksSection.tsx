@@ -20,7 +20,7 @@ const RESULTS = [
 export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
   const qc = useQueryClient();
   const { data } = useTasks(shiftRef.date);
-  const [onlyShift, setOnlyShift] = useState(true);
+  const [onlyShift, setOnlyShift] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ category: string; shift: string; cycle: string; time_start: string; time_end: string; title: string } | null>(null);
 
@@ -40,10 +40,17 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
   const refresh = () => qc.invalidateQueries({ queryKey: ["tasks"] });
   const need = () => { if (!user) { toast.error("Escolha seu nome no topo antes de registrar."); return false; } return true; };
 
-  const templates = (data?.templates ?? []).filter((t) => !onlyShift || t.shift === shiftRef.shift);
+  const order: Record<string, number> = { noite: 0, manha: 1, tarde: 2 };
+  const tkey = (t: TaskTemplate) => {
+    const s = t.time_start ?? "99:99";
+    return t.shift === "noite" && s < "12:00" ? `3${s}` : `1${s}`;
+  };
+  const templates = (data?.templates ?? [])
+    .filter((t) => !onlyShift || t.shift === shiftRef.shift)
+    .sort((a, b) => (order[a.shift] ?? 9) - (order[b.shift] ?? 9) || tkey(a).localeCompare(tkey(b)) || a.sort - b.sort);
   const results = new Map((data?.results ?? []).map((r) => [r.template_id, r]));
-  const groups = new Map<string, TaskTemplate[]>();
-  templates.forEach((t) => groups.set(t.category, [...(groups.get(t.category) ?? []), t]));
+  const groups = new Map<string, TaskTemplate[]>([["all", templates]]);
+  const rowCls: Record<string, string> = { noite: "bg-card", manha: "bg-primary/10", tarde: "bg-muted/60" };
 
   const setResult = async (t: TaskTemplate, patch: { result?: string; notes?: string }) => {
     if (!need()) return;
