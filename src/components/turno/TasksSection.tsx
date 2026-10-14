@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { auditCreate, auditUpdate } from "@/lib/identity";
 import { useTasks, type TaskTemplate } from "@/lib/data";
-import { SHIFTS, shiftLabel, type ShiftRef } from "@/lib/shifts";
+import { SHIFTS, shiftLabel, cycleAppliesOn, type ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
 const RESULTS = [
@@ -20,7 +20,8 @@ const RESULTS = [
 export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
   const qc = useQueryClient();
   const { data } = useTasks(shiftRef.date);
-  const [onlyShift, setOnlyShift] = useState(false);
+  const [shiftF, setShiftF] = useState("all");
+  const [cycleF, setCycleF] = useState("all");
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ category: string; shift: string; cycle: string; time_start: string; time_end: string; title: string } | null>(null);
 
@@ -45,8 +46,11 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
     const s = t.time_start ?? "99:99";
     return t.shift === "noite" && s < "12:00" ? `3${s}` : `1${s}`;
   };
-  const templates = (data?.templates ?? [])
-    .filter((t) => !onlyShift || t.shift === shiftRef.shift)
+  const allT = data?.templates ?? [];
+  const cycles = [...new Set(allT.map((t) => t.cycle))].sort();
+  const templates = allT
+    .filter((t) => shiftF === "all" || t.shift === shiftF)
+    .filter((t) => cycleF === "all" || (cycleF === "today" ? cycleAppliesOn(t.cycle, shiftRef.date) : t.cycle === cycleF))
     .sort((a, b) => (order[a.shift] ?? 9) - (order[b.shift] ?? 9) || tkey(a).localeCompare(tkey(b)) || a.sort - b.sort);
   const results = new Map((data?.results ?? []).map((r) => [r.template_id, r]));
   const groups = new Map<string, TaskTemplate[]>([["all", templates]]);
@@ -80,9 +84,16 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
     <section className="rounded border border-border bg-card">
       <div className="bg-destructive py-2 text-center text-lg font-semibold text-destructive-foreground">Tarefas Diárias ITOM</div>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-        <label className="ml-auto flex items-center gap-1 text-xs">
-          <input type="checkbox" checked={onlyShift} onChange={(e) => setOnlyShift(e.target.checked)} /> Só turno {shiftLabel(shiftRef.shift)}
-        </label>
+        <select className="h-8 rounded border border-input bg-background px-2 text-sm" value={shiftF} onChange={(e) => setShiftF(e.target.value)}>
+          <option value="all">Todos os turnos</option>
+          {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+        <select className="h-8 rounded border border-input bg-background px-2 text-sm" value={cycleF} onChange={(e) => setCycleF(e.target.value)}>
+          <option value="all">Todos os ciclos</option>
+          <option value="today">Aplicáveis em {shiftRef.date.split("-").reverse().join("/")}</option>
+          {cycles.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <span className="ml-auto text-xs text-muted-foreground">{templates.length} de {allT.length} tarefas</span>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-border p-3">
         <select className="h-8 rounded border border-input bg-background px-2 text-sm" value={form.shift} onChange={(e) => setForm({ ...form, shift: e.target.value })}>

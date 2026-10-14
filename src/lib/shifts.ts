@@ -86,3 +86,18 @@ export function interventionInShift(startIso: string, endIso: string | null, r: 
 
 export const brDate = (date: string) => date.split("-").reverse().join("/");
 export { pad };
+
+/** Whether a task cycle (DIÁRIO, DU, "segunda-feira", "MENSAL - DIA 5"...) applies on a YYYY-MM-DD date. */
+export function cycleAppliesOn(cycle: string, date: string): boolean {
+  const c = cycle.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const [y, m, d] = date.split("-").map(Number);
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  if (c.startsWith("diario")) return true;
+  if (c === "du") return wd >= 1 && wd <= 5;
+  const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+  const i = days.findIndex((n) => c.startsWith(n));
+  if (i >= 0) return i === wd;
+  const mm = c.match(/mensal.*?(\d+)/);
+  if (mm) return Number(mm[1]) === d;
+  return true;
+}

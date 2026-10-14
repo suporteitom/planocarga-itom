@@ -29,3 +29,11 @@ describe("turnos (Europe/Lisbon) — o dia começa pela noite", () => {
     expect(interventionInShift(s, e, { date: "2026-10-10", shift: "noite" })).toBe(false);
   });
 });
+
+import { cycleAppliesOn } from "@/lib/shifts";
+describe("cycleAppliesOn", () => {
+  it("DU only weekdays", () => { expect(cycleAppliesOn("DU", "2026-10-14")).toBe(true); expect(cycleAppliesOn("DU", "2026-10-17")).toBe(false); });
+  it("weekday cycle", () => { expect(cycleAppliesOn("sábado", "2026-10-17")).toBe(true); expect(cycleAppliesOn("segunda-feira", "2026-10-14")).toBe(false); });
+  it("monthly day 5", () => { expect(cycleAppliesOn("MENSAL - DIA 5", "2026-10-05")).toBe(true); expect(cycleAppliesOn("MENSAL - DIA 5", "2026-10-06")).toBe(false); });
+  it("daily always", () => expect(cycleAppliesOn("DIÁRIO", "2026-10-18")).toBe(true));
+});
