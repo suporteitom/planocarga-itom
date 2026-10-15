@@ -48,7 +48,7 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
     const s = t.time_start ?? "99:99";
     return t.shift === "noite" && s < "12:00" ? `3${s}` : `1${s}`;
   };
-  const allT = data?.templates ?? [];
+  const allT = (data?.templates ?? []).filter((t) => t.category === "Tarefas Diárias ITOM");
   const cycles = [...new Set(allT.map((t) => t.cycle))].sort();
   const templates = allT
     .filter((t) => shiftF === "all" || t.shift === shiftF)

@@ -6,6 +6,7 @@ import { ShiftHeader } from "@/components/turno/ShiftHeader";
 import { MessagesSection } from "@/components/turno/MessagesSection";
 import { InterventionsSection } from "@/components/turno/InterventionsSection";
 import { TasksSection } from "@/components/turno/TasksSection";
+import { SporadicSection } from "@/components/turno/SporadicSection";
 import { HistoryPanel } from "@/components/turno/HistoryPanel";
 import { NamePicker } from "@/components/turno/NamePicker";
 import { useCurrentUser } from "@/lib/identity";
@@ -83,6 +84,7 @@ function Index() {
               <TabsTrigger value="recados" className={tabCls}>Recados e Intervenções</TabsTrigger>
               <TabsTrigger value="outros" className={tabCls}>Outros Recados</TabsTrigger>
               <TabsTrigger value="tarefas" className={tabCls}>Tarefas do Dia</TabsTrigger>
+              <TabsTrigger value="esporadicas" className={tabCls}>Tarefas Esporádicas</TabsTrigger>
               {FUTURE_TABS.map((t) => (
                 <TabsTrigger key={t.key} value={t.key} disabled className="rounded-b-none">{t.label} <span className="ml-1 text-[10px]">(em breve)</span></TabsTrigger>
               ))}
@@ -113,6 +115,12 @@ function Index() {
           {header}
           <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
             <TasksSection shiftRef={shiftRef} user={name} />
+          </fieldset>
+        </TabsContent>
+        <TabsContent value="esporadicas" className="mt-0">
+          {header}
+          <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
+            <SporadicSection shiftRef={shiftRef} user={name} />
           </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
