@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { auditCreate, auditUpdate } from "@/lib/identity";
 import { useTasks, type TaskTemplate } from "@/lib/data";
@@ -22,6 +23,7 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
   const { data } = useTasks(shiftRef.date);
   const [shiftF, setShiftF] = useState("all");
   const [cycleSel, setCycleSel] = useState<string[] | null>(null);
+  const [cyclesOpen, setCyclesOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ category: string; shift: string; cycle: string; time_start: string; time_end: string; title: string } | null>(null);
 
@@ -88,15 +90,17 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
           <option value="all">Todos os turnos</option>
           {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
-        <details className="relative">
-          <summary className="flex h-8 cursor-pointer list-none items-center rounded border border-input bg-background px-2 text-sm">
-            Ciclos: {cycleSel === null ? "Todos" : cycleSel.length === 1 ? cycleSel[0] : `${cycleSel.length} selecionados`} ▾
-          </summary>
-          <div className="absolute z-20 mt-1 w-56 rounded border border-border bg-popover p-2 text-sm shadow-md">
+        <Popover open={cyclesOpen} onOpenChange={setCyclesOpen}>
+          <PopoverTrigger asChild>
+            <button type="button" className="flex h-8 items-center rounded border border-input bg-background px-2 text-sm">
+              Ciclos: {cycleSel === null ? "Todos" : cycleSel.length === 1 ? cycleSel[0] : `${cycleSel.length} selecionados`} ▾
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-2 text-sm">
             <label className="flex items-center gap-2 py-1 font-medium">
               <input type="checkbox" checked={cycleSel === null} onChange={(e) => setCycleSel(e.target.checked ? null : [])} />(Selecionar tudo)
             </label>
-            <button type="button" className="mb-1 w-full rounded px-1 py-1 text-left text-primary hover:bg-muted" onClick={() => setCycleSel(cycles.filter((c) => cycleAppliesOn(c, shiftRef.date)))}>
+            <button type="button" className="mb-1 w-full rounded px-1 py-1 text-left text-primary hover:bg-muted" onClick={() => { setCycleSel(cycles.filter((c) => cycleAppliesOn(c, shiftRef.date))); setCyclesOpen(false); }}>
               Aplicáveis em {shiftRef.date.split("-").reverse().join("/")}
             </button>
             <div className="border-t border-border pt-1">
@@ -110,8 +114,11 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
                 </label>
               ))}
             </div>
-          </div>
-        </details>
+            <div className="mt-2 flex justify-end border-t border-border pt-2">
+              <Button size="sm" className="h-7" onClick={() => setCyclesOpen(false)}>OK</Button>
+            </div>
+          </PopoverContent>
+        </Popover>
         <span className="ml-auto text-xs text-muted-foreground">{templates.length} de {allT.length} tarefas</span>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-border p-3">
