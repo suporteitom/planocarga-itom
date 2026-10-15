@@ -21,7 +21,7 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
   const qc = useQueryClient();
   const { data } = useTasks(shiftRef.date);
   const [shiftF, setShiftF] = useState("all");
-  const [cycleF, setCycleF] = useState("all");
+  const [cycleSel, setCycleSel] = useState<string[] | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ category: string; shift: string; cycle: string; time_start: string; time_end: string; title: string } | null>(null);
 
@@ -50,7 +50,7 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
   const cycles = [...new Set(allT.map((t) => t.cycle))].sort();
   const templates = allT
     .filter((t) => shiftF === "all" || t.shift === shiftF)
-    .filter((t) => cycleF === "all" || (cycleF === "today" ? cycleAppliesOn(t.cycle, shiftRef.date) : t.cycle === cycleF))
+    .filter((t) => cycleSel === null || cycleSel.includes(t.cycle))
     .sort((a, b) => (order[a.shift] ?? 9) - (order[b.shift] ?? 9) || tkey(a).localeCompare(tkey(b)) || a.sort - b.sort);
   const results = new Map((data?.results ?? []).map((r) => [r.template_id, r]));
   const groups = new Map<string, TaskTemplate[]>([["all", templates]]);
@@ -88,11 +88,30 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
           <option value="all">Todos os turnos</option>
           {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
-        <select className="h-8 rounded border border-input bg-background px-2 text-sm" value={cycleF} onChange={(e) => setCycleF(e.target.value)}>
-          <option value="all">Todos os ciclos</option>
-          <option value="today">Aplicáveis em {shiftRef.date.split("-").reverse().join("/")}</option>
-          {cycles.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <details className="relative">
+          <summary className="flex h-8 cursor-pointer list-none items-center rounded border border-input bg-background px-2 text-sm">
+            Ciclos: {cycleSel === null ? "Todos" : cycleSel.length === 1 ? cycleSel[0] : `${cycleSel.length} selecionados`} ▾
+          </summary>
+          <div className="absolute z-20 mt-1 w-56 rounded border border-border bg-popover p-2 text-sm shadow-md">
+            <label className="flex items-center gap-2 py-1 font-medium">
+              <input type="checkbox" checked={cycleSel === null} onChange={(e) => setCycleSel(e.target.checked ? null : [])} />(Selecionar tudo)
+            </label>
+            <button type="button" className="mb-1 w-full rounded px-1 py-1 text-left text-primary hover:bg-muted" onClick={() => setCycleSel(cycles.filter((c) => cycleAppliesOn(c, shiftRef.date)))}>
+              Aplicáveis em {shiftRef.date.split("-").reverse().join("/")}
+            </button>
+            <div className="border-t border-border pt-1">
+              {cycles.map((c) => (
+                <label key={c} className="flex items-center gap-2 py-1">
+                  <input type="checkbox" checked={cycleSel === null || cycleSel.includes(c)} onChange={(e) => {
+                    const cur = cycleSel ?? cycles;
+                    const next = e.target.checked ? [...cur, c] : cur.filter((x) => x !== c);
+                    setCycleSel(next.length === cycles.length ? null : next);
+                  }} />{c}
+                </label>
+              ))}
+            </div>
+          </div>
+        </details>
         <span className="ml-auto text-xs text-muted-foreground">{templates.length} de {allT.length} tarefas</span>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-border p-3">
