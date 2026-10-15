@@ -63,6 +63,14 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
                 <tr><th className="p-2 text-center font-semibold">{cat}</th><th className="w-56 p-2">Resultado</th><th className="p-2">Obs.</th><th className="w-10" /></tr>
               </thead>
               <tbody>
+                <tr className="border-b border-border bg-muted/30">
+                  <td colSpan={4} className="p-2">
+                    <div className="flex gap-2">
+                      <Input className="h-8" placeholder="Nova linha…" value={newTitle[cat] ?? ""} onChange={(e) => setNewTitle({ ...newTitle, [cat]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && add(cat)} />
+                      <Button size="sm" onClick={() => add(cat)}><Plus className="mr-1 h-4 w-4" />Adicionar</Button>
+                    </div>
+                  </td>
+                </tr>
                 {items.map((t) => {
                   const r = results.get(t.id);
                   return (
@@ -81,14 +89,6 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
                     </tr>
                   );
                 })}
-                <tr className="border-t border-border">
-                  <td colSpan={4} className="p-2">
-                    <div className="flex gap-2">
-                      <Input className="h-8" placeholder="Nova linha…" value={newTitle[cat] ?? ""} onChange={(e) => setNewTitle({ ...newTitle, [cat]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && add(cat)} />
-                      <Button size="sm" onClick={() => add(cat)}><Plus className="mr-1 h-4 w-4" />Adicionar</Button>
-                    </div>
-                  </td>
-                </tr>
               </tbody>
             </table>
           </section>
