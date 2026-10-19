@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Passagem de Turno · Operações SAP" },
+      { title: "Plano de Carga · ITOM" },
       { name: "description", content: "Registro operacional e passagem de turno da equipe de operações SAP." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
