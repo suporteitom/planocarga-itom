@@ -107,7 +107,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
       <td className="p-1">{ed("environment", { list: "env-list" })}</td>
       <td className="p-1">
         <select className="h-7 rounded border border-border bg-background px-1 text-xs" value={draft.shift} onChange={(e) => setDraft({ ...draft, shift: e.target.value })}>
-          {SHIFTS.map((s) => <option key={s} value={s}>{shiftLabel(s)}</option>)}
+          {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
       </td>
       <td className="p-1">{ed("cycle", { list: "job-cycle-list" })}</td>
@@ -148,7 +148,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
           <h2 className="mr-2 font-semibold">Monitoramento de Jobs · {brDate(shiftRef.date)}</h2>
           <select className={sel} value={shiftF} onChange={(e) => setShiftF(e.target.value)}>
             <option value="all">Todos os turnos</option>
-            {SHIFTS.map((s) => <option key={s} value={s}>{shiftLabel(s)}</option>)}
+            {SHIFTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
           <Popover open={cyclesOpen} onOpenChange={setCyclesOpen}>
             <PopoverTrigger asChild>
@@ -204,7 +204,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
                   <td className="p-1.5 font-mono text-xs">{t.job_name}</td>
                   <td className="p-1.5 text-xs">{t.bi_folder}</td>
                   <td className="p-1.5 text-xs">{t.environment}</td>
-                  <td className="p-1.5 text-xs">{shiftLabel(t.shift as never)}</td>
+                  <td className="p-1.5 text-xs">{shiftLabel(t.shift)}</td>
                   <td className="p-1.5 text-xs">{t.cycle}</td>
                   <td className="p-1.5 font-mono text-xs">{t.run_time}</td>
                   <td className="p-1.5"><ResultSel t={t} /></td>
