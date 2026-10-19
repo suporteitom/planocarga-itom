@@ -32,7 +32,7 @@ export function summaryRows(
 
 /** Larguras de coluna (em caracteres) a partir do cabeçalho e do conteúdo, entre 8 e 60. */
 export function columnWidths(rows: Record<string, unknown>[]) {
-  const keys = rows.length ? Object.keys(rows[0]) : [];
+  const keys = Object.keys(rows[0] ?? {});
   return keys.map((k) => {
     const longest = rows.reduce((n, r) => Math.max(n, String(r[k] ?? "").length), k.length);
     return { wch: Math.min(60, Math.max(8, longest + 2)) };
