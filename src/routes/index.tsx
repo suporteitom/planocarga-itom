@@ -7,6 +7,7 @@ import { MessagesSection } from "@/components/turno/MessagesSection";
 import { InterventionsSection } from "@/components/turno/InterventionsSection";
 import { TasksSection } from "@/components/turno/TasksSection";
 import { SporadicSection } from "@/components/turno/SporadicSection";
+import { JobsSection } from "@/components/turno/JobsSection";
 import { HistoryPanel } from "@/components/turno/HistoryPanel";
 import { NamePicker } from "@/components/turno/NamePicker";
 import { useCurrentUser } from "@/lib/identity";
@@ -28,9 +29,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const FUTURE_TABS = [
-  { key: "jobs", label: "Monitoramento de Jobs" },
-];
+const FUTURE_TABS: { key: string; label: string }[] = [];
 
 function Index() {
   useRealtimeSync();
@@ -85,6 +84,7 @@ function Index() {
               <TabsTrigger value="outros" className={tabCls}>Outros Recados</TabsTrigger>
               <TabsTrigger value="tarefas" className={tabCls}>Tarefas do Dia</TabsTrigger>
               <TabsTrigger value="esporadicas" className={tabCls}>Tarefas Esporádicas</TabsTrigger>
+              <TabsTrigger value="jobs" className={tabCls}>Monitoramento de Jobs</TabsTrigger>
               {FUTURE_TABS.map((t) => (
                 <TabsTrigger key={t.key} value={t.key} disabled className="rounded-b-none">{t.label} <span className="ml-1 text-[10px]">(em breve)</span></TabsTrigger>
               ))}
@@ -121,6 +121,12 @@ function Index() {
           {header}
           <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
             <SporadicSection shiftRef={shiftRef} user={name} />
+          </fieldset>
+        </TabsContent>
+        <TabsContent value="jobs" className="mt-0">
+          {header}
+          <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
+            <JobsSection key={shiftRef.date + shiftRef.shift} shiftRef={shiftRef} user={name} />
           </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
