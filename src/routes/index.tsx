@@ -18,9 +18,9 @@ import { shiftLabel, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts"
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Passagem de Turno · Operações SAP" },
+      { title: "Plano de Carga · ITOM" },
       { name: "description", content: "Recados, intervenções planejadas e passagem de turno da equipe de operações SAP." },
-      { property: "og:title", content: "Passagem de Turno · Operações SAP" },
+      { property: "og:title", content: "Plano de Carga · ITOM" },
       { property: "og:description", content: "Registro operacional compartilhado entre os turnos Manhã, Tarde e Noite." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -69,8 +69,7 @@ function Index() {
         <header className="sticky top-0 z-20 border-b border-border bg-sidebar">
           <div className="flex flex-wrap items-center gap-3 px-3 pt-2 md:px-4">
             <div className="flex items-baseline gap-2">
-              <span className="font-mono text-sm font-bold tracking-tight text-primary">▌PASSAGEM DE TURNO</span>
-              <span className="hidden text-xs text-muted-foreground sm:inline">Operações SAP</span>
+              <span className="font-mono text-lg font-bold tracking-tight text-primary">▌PLANO DE CARGA - ITOM</span>
             </div>
             <div className="ml-auto flex items-center gap-2">
               <UserRound className="h-4 w-4 text-muted-foreground" />
