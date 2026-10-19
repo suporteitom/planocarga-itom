@@ -1,5 +1,5 @@
 import type { Intervention, Message, TaskResult, TaskTemplate } from "./data";
-import { shiftLabel, shiftOf, spParts } from "./shifts";
+import { brDate, shiftLabel, shiftOf, spParts } from "./shifts";
 
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -7,6 +7,29 @@ const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u
 export function exportFileName(prefix: string, from: string, to: string, shift?: string) {
   return `${prefix}_${from}_a_${to}${shift ? "_" + slug(shiftLabel(shift)) : ""}.xlsx`;
 }
+
+/** Linhas da folha "Resumo": período, turno, data de geração e registos por guia. */
+export function summaryRows(
+  from: string,
+  to: string,
+  shift: string | undefined,
+  generatedAt: Date,
+  sheets: { name: string; rows: unknown[] }[],
+) {
+  const total = sheets.reduce((n, s) => n + s.rows.length, 0);
+  return [
+    ["PLANO DE CARGA - ITOM", ""],
+    ["Gerado em", spParts(generatedAt).br],
+    ["Fuso horário", "Lisboa (Europe/Lisbon)"],
+    ["Período", from === to ? brDate(from) : `${brDate(from)} a ${brDate(to)}`],
+    ["Turno selecionado", shift ? shiftLabel(shift) : "Todos"],
+    ["", ""],
+    ["Guia", "Registos"],
+    ...sheets.map((s) => [s.name, s.rows.length] as (string | number)[]),
+    ["Total", total],
+  ];
+}
+
 
 export async function exportXlsx(
   filename: string,
@@ -105,12 +128,20 @@ export async function exportAll(from: string, to: string, shift?: string) {
     return { Data: br(r.shift_date), Tipo: t.kind === "situacao" ? "Ponto de Situação" : "Job", Job: t.job_name, "BI - Pastas": t.bi_folder ?? "", Ambiente: t.environment ?? "", Turno: shiftLabel(t.shift), Ciclo: t.cycle ?? "", Hora: t.run_time ?? "", Resultado: r.result ?? "", "Obs.": r.notes ?? "", "Alterado por": r.updated_by ?? "" };
   });
   const wb = XLSX.utils.book_new();
-  const add = (rows: any[], name: string) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ "Sem registos": "" }]), name);
-  add(msg(all.filter((x) => x.category === "recados")), "Recados");
-  add(ints, "Intervenções");
-  add(msg(all.filter((x) => x.category === "outros")), "Outros Recados");
-  add(taskRows(true), "Tarefas do Dia");
-  add(taskRows(false), "Tarefas Esporádicas");
-  add(jobs, "Monitoramento de Jobs");
+  const sheets = [
+    { name: "Recados", rows: msg(all.filter((x) => x.category === "recados")) },
+    { name: "Intervenções", rows: ints },
+    { name: "Outros Recados", rows: msg(all.filter((x) => x.category === "outros")) },
+    { name: "Tarefas do Dia", rows: taskRows(true) },
+    { name: "Tarefas Esporádicas", rows: taskRows(false) },
+    { name: "Monitoramento de Jobs", rows: jobs },
+  ];
+  const sum = XLSX.utils.aoa_to_sheet(summaryRows(from, to, shift, new Date(), sheets));
+  sum["!cols"] = [{ wch: 30 }, { wch: 26 }];
+  sum["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+  XLSX.utils.book_append_sheet(wb, sum, "Resumo");
+  for (const s of sheets) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s.rows.length ? s.rows : [{ "Sem registos": "" }]), s.name);
+  }
   XLSX.writeFile(wb, exportFileName("plano-carga-itom", from, to, shift));
 }
