@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Intervention, Message } from "@/lib/data";
-import { exportXlsx } from "@/lib/export";
+import { exportAll, exportXlsx } from "@/lib/export";
+import { toast } from "sonner";
 import { SHIFTS, addDays, brDate, fromSp, shiftLabel, shiftOf, spParts } from "@/lib/shifts";
 
 export function HistoryPanel({ onOpenShift }: { onOpenShift: (date: string, shift: string) => void }) {
@@ -59,6 +60,9 @@ export function HistoryPanel({ onOpenShift }: { onOpenShift: (date: string, shif
         <Field label="Pessoa"><Input value={person} onChange={(e) => setPerson(e.target.value)} className="h-8 w-28 text-xs" /></Field>
         <Field label="Palavra-chave"><Input value={kw} onChange={(e) => setKw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} className="h-8 w-40 text-xs" /></Field>
         <Button size="sm" onClick={search} disabled={loading}><Search className="mr-1 h-3.5 w-3.5" />Buscar</Button>
+        <Button size="sm" onClick={async () => { try { await exportAll(from, to); } catch { toast.error("Não foi possível exportar"); } }}>
+          <Download className="mr-1 h-3.5 w-3.5" />Exportar tudo (Excel)
+        </Button>
         {res && (
           <Button size="sm" variant="outline" onClick={() => exportXlsx(`passagem-turno_${from}_a_${to}.xlsx`, res.m, res.i)}>
             <Download className="mr-1 h-3.5 w-3.5" />Exportar período
