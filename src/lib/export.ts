@@ -1,5 +1,5 @@
 import type { Intervention, Message, TaskResult, TaskTemplate } from "./data";
-import { shiftLabel, shiftOf, spParts } from "./shifts";
+import { brDate, shiftLabel, shiftOf, spParts } from "./shifts";
 
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -7,6 +7,29 @@ const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u
 export function exportFileName(prefix: string, from: string, to: string, shift?: string) {
   return `${prefix}_${from}_a_${to}${shift ? "_" + slug(shiftLabel(shift)) : ""}.xlsx`;
 }
+
+/** Linhas da folha "Resumo": período, turno, data de geração e registos por guia. */
+export function summaryRows(
+  from: string,
+  to: string,
+  shift: string | undefined,
+  generatedAt: Date,
+  sheets: { name: string; rows: unknown[] }[],
+) {
+  const total = sheets.reduce((n, s) => n + s.rows.length, 0);
+  return [
+    ["PLANO DE CARGA - ITOM", ""],
+    ["Gerado em", spParts(generatedAt).br],
+    ["Fuso horário", "Lisboa (Europe/Lisbon)"],
+    ["Período", from === to ? brDate(from) : `${brDate(from)} a ${brDate(to)}`],
+    ["Turno selecionado", shift ? shiftLabel(shift) : "Todos"],
+    ["", ""],
+    ["Guia", "Registos"],
+    ...sheets.map((s) => [s.name, s.rows.length] as (string | number)[]),
+    ["Total", total],
+  ];
+}
+
 
 export async function exportXlsx(
   filename: string,
