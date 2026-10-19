@@ -1,5 +1,12 @@
 import type { Intervention, Message, TaskResult, TaskTemplate } from "./data";
-import { shiftLabel, spParts } from "./shifts";
+import { shiftLabel, shiftOf, spParts } from "./shifts";
+
+const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+/** Nome de ficheiro de exportação; inclui o turno quando um turno foi escolhido. */
+export function exportFileName(prefix: string, from: string, to: string, shift?: string) {
+  return `${prefix}_${from}_a_${to}${shift ? "_" + slug(shiftLabel(shift)) : ""}.xlsx`;
+}
 
 export async function exportXlsx(
   filename: string,
@@ -59,7 +66,7 @@ export async function exportXlsx(
   XLSX.writeFile(wb, filename);
 }
 
-export async function exportAll(from: string, to: string) {
+export async function exportAll(from: string, to: string, shift?: string) {
   const { supabase } = await import("@/integrations/supabase/client");
   const XLSX = await import("xlsx");
   const br = (d: string) => d.split("-").reverse().join("/");
@@ -75,8 +82,10 @@ export async function exportAll(from: string, to: string) {
     "Data do turno": br(x.shift_date), Turno: shiftLabel(x.shift), "Data/hora": spParts(x.occurred_at).br,
     Recado: x.body, Autor: x.author ?? "", Importância: x.importance, "Criado por": x.created_by ?? "", "Alterado por": x.updated_by ?? "",
   }));
-  const all = (m.data ?? []) as any[];
-  const ints = ((i.data ?? []) as any[]).map((x) => ({
+  const all = ((m.data ?? []) as any[]).filter((x) => !shift || x.shift === shift);
+  const ints = ((i.data ?? []) as any[])
+    .filter((x) => !shift || shiftOf(new Date(x.start_at)).shift === shift)
+    .map((x) => ({
     Tipo: x.type ?? "", Cliente: x.client ?? "", Data: x.start_at ? br(spParts(x.start_at).date) : "", Ticket: x.ticket ?? "",
     Início: spParts(x.start_at).time, "Fim previsto": spParts(x.end_at).br, "E-mail (assunto)": x.email_subject ?? "",
     "Quem enviou": x.sent_by ?? "", "Data/hora envio": spParts(x.sent_at).br, Observações: x.notes ?? "", Status: x.status,
@@ -84,14 +93,14 @@ export async function exportAll(from: string, to: string) {
   }));
   const tMap = new Map(((tt.data ?? []) as any[]).map((t) => [t.id, t]));
   const isDaily = (t: any) => t.category === "Tarefas Diárias ITOM";
-  const taskRows = (daily: boolean) => ((tr.data ?? []) as any[]).filter((r) => { const t = tMap.get(r.template_id); return t && isDaily(t) === daily; }).map((r) => {
+  const taskRows = (daily: boolean) => ((tr.data ?? []) as any[]).filter((r) => { const t = tMap.get(r.template_id); return t && isDaily(t) === daily && (!shift || t.shift === shift); }).map((r) => {
     const t: any = tMap.get(r.template_id);
     return daily
       ? { Data: br(r.shift_date), Turno: shiftLabel(t.shift), Ciclo: t.cycle, "Hora I": t.time_start ?? "", "Hora F": t.time_end ?? "", Tarefa: t.title, Resultado: r.result ?? "", "Obs.": r.notes ?? "", "Alterado por": r.updated_by ?? "" }
       : { Data: br(r.shift_date), Bloco: t.category, Item: t.title, Resultado: r.result ?? "", "Obs.": r.notes ?? "", "Alterado por": r.updated_by ?? "" };
   });
   const jMap = new Map(((jt.data ?? []) as any[]).map((t) => [t.id, t]));
-  const jobs = ((jr.data ?? []) as any[]).filter((r) => jMap.has(r.template_id)).map((r) => {
+  const jobs = ((jr.data ?? []) as any[]).filter((r) => { const t = jMap.get(r.template_id); return !!t && (!shift || t.shift === shift); }).map((r) => {
     const t: any = jMap.get(r.template_id);
     return { Data: br(r.shift_date), Tipo: t.kind === "situacao" ? "Ponto de Situação" : "Job", Job: t.job_name, "BI - Pastas": t.bi_folder ?? "", Ambiente: t.environment ?? "", Turno: shiftLabel(t.shift), Ciclo: t.cycle ?? "", Hora: t.run_time ?? "", Resultado: r.result ?? "", "Obs.": r.notes ?? "", "Alterado por": r.updated_by ?? "" };
   });
@@ -103,5 +112,5 @@ export async function exportAll(from: string, to: string) {
   add(taskRows(true), "Tarefas do Dia");
   add(taskRows(false), "Tarefas Esporádicas");
   add(jobs, "Monitoramento de Jobs");
-  XLSX.writeFile(wb, `plano-carga-itom_${from}_a_${to}.xlsx`);
+  XLSX.writeFile(wb, exportFileName("plano-carga-itom", from, to, shift));
 }
