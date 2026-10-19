@@ -12,9 +12,9 @@ import { SHIFTS, shiftLabel, cycleAppliesOn, type ShiftRef } from "@/lib/shifts"
 import { cn } from "@/lib/utils";
 
 const RESULTS = [
-  { key: "", label: "NULL", cls: "bg-muted-foreground text-background" },
   { key: "ok", label: "OK", cls: "bg-success text-primary-foreground" },
   { key: "nok", label: "NOK", cls: "bg-destructive text-destructive-foreground" },
+  { key: "na", label: "N/A", cls: "bg-muted-foreground text-background" },
   { key: "pendente", label: "Pendente", cls: "bg-warning text-foreground" },
 ];
 const rowCls: Record<string, string> = { noite: "bg-card", manha: "bg-primary/10", tarde: "bg-muted/60" };
@@ -46,7 +46,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
     if (!need()) return;
     const ex = results.get(t.id);
     const { error } = await supabase.from("job_results").upsert(
-      { template_id: t.id, shift_date: shiftRef.date, result: ex?.result ?? null, notes: ex?.notes ?? null, ...(ex ? {} : auditCreate(user)), ...auditUpdate(user), ...patch },
+      { template_id: t.id, shift_date: shiftRef.date, result: ex?.result ?? "pendente", notes: ex?.notes ?? null, ...(ex ? {} : auditCreate(user)), ...auditUpdate(user), ...patch },
       { onConflict: "template_id,shift_date" },
     );
     if (error) toast.error("Erro ao salvar resultado."); else refresh();
@@ -76,11 +76,11 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
   };
 
   const resultBtns = (t: JobTemplate) => {
-    const cur = results.get(t.id)?.result ?? "";
+    const cur = results.get(t.id)?.result ?? "pendente";
     return (
       <div className="flex gap-1">
         {RESULTS.map((o) => (
-          <button key={o.key} type="button" onClick={() => setResult(t, { result: o.key || null })}
+          <button key={o.key} type="button" onClick={() => setResult(t, { result: o.key })}
             className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", cur === o.key ? o.cls : "bg-muted text-muted-foreground")}>{o.label}</button>
         ))}
       </div>
