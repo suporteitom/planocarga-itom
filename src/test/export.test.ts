@@ -53,6 +53,6 @@ describe("summaryRows", () => {
     const rows = summaryRows("2026-10-12", "2026-10-19", "", when, sheets);
     expect(rows[3]).toEqual(["Período", "12/10/2026 a 19/10/2026"]);
     expect(rows[4]).toEqual(["Turno selecionado", "Todos"]);
-    expect(rows[0][0]).toBe("PLANO DE CARGA - ITOM");
+    expect(rows[0]?.[0]).toBe("PLANO DE CARGA - ITOM");
   });
 });
