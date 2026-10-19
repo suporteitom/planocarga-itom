@@ -15,6 +15,8 @@ const RESULTS = [
   { key: "ok", label: "OK", cls: "bg-success text-primary-foreground" },
   { key: "nok", label: "NOK", cls: "bg-destructive text-destructive-foreground" },
   { key: "na", label: "N/A", cls: "bg-muted-foreground text-background" },
+  { key: "exec", label: "EXEC", cls: "bg-info text-background" },
+  { key: "nexec", label: "N/EXEC", cls: "border border-info bg-transparent text-info" },
   { key: "pendente", label: "Pendente", cls: "bg-warning text-foreground" },
 ];
 const rowCls: Record<string, string> = { noite: "bg-card", manha: "bg-primary/10", tarde: "bg-muted/60" };
