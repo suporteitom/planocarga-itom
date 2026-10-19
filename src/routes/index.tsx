@@ -126,7 +126,7 @@ function Index() {
         <TabsContent value="jobs" className="mt-0">
           {header}
           <fieldset disabled={closed} className={"grid min-w-0 grid-cols-1 gap-4 p-3 md:p-4 " + (closed ? "opacity-70" : "")}>
-            <JobsSection key={shiftRef.date + shiftRef.shift} shiftRef={shiftRef} user={name} />
+            <JobsSection shiftRef={shiftRef} user={name} />
           </fieldset>
         </TabsContent>
         <TabsContent value="historico" className="mt-0">
