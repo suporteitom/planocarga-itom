@@ -161,6 +161,101 @@ export type Database = {
         }
         Relationships: []
       }
+      job_results: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          result: string | null
+          shift_date: string
+          template_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          result?: string | null
+          shift_date: string
+          template_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          result?: string | null
+          shift_date?: string
+          template_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_results_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "job_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_templates: {
+        Row: {
+          active: boolean
+          bi_folder: string | null
+          created_at: string
+          created_by: string | null
+          cycle: string
+          environment: string | null
+          id: string
+          job_name: string
+          kind: string
+          run_time: string | null
+          shift: string
+          sort: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          bi_folder?: string | null
+          created_at?: string
+          created_by?: string | null
+          cycle?: string
+          environment?: string | null
+          id?: string
+          job_name: string
+          kind?: string
+          run_time?: string | null
+          shift?: string
+          sort?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          bi_folder?: string | null
+          created_at?: string
+          created_by?: string | null
+          cycle?: string
+          environment?: string | null
+          id?: string
+          job_name?: string
+          kind?: string
+          run_time?: string | null
+          shift?: string
+          sort?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           active: boolean
