@@ -151,9 +151,6 @@ export function ShiftHeader({
           {counts.carried > 0 && <> (<b className="font-mono">{counts.carried}</b> pendentes)</>} ·{" "}
           <b className="font-mono">{counts.interventions}</b> intervenções
         </div>
-        <Button variant="outline" size="sm" onClick={onExport}>
-          <Download className="mr-1 h-3.5 w-3.5" /> Excel do turno
-        </Button>
       </div>
     </div>
   );
