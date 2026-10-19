@@ -30,6 +30,46 @@ export function summaryRows(
   ];
 }
 
+/** Larguras de coluna (em caracteres) a partir do cabeçalho e do conteúdo, entre 8 e 60. */
+export function columnWidths(rows: Record<string, unknown>[]) {
+  const keys = Object.keys(rows[0] ?? {});
+  return keys.map((k) => {
+    const longest = rows.reduce((n, r) => Math.max(n, String(r[k] ?? "").length), k.length);
+    return { wch: Math.min(60, Math.max(8, longest + 2)) };
+  });
+}
+
+/** Folha de dados com filtro no cabeçalho e larguras ajustadas. */
+function dataSheet(XLSX: typeof import("xlsx"), rows: Record<string, unknown>[], empty: Record<string, unknown>) {
+  const data = rows.length ? rows : [empty];
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = columnWidths(data);
+  if (ws["!ref"]) ws["!autofilter"] = { ref: ws["!ref"] };
+  return ws;
+}
+
+/** Grava o livro congelando a 1.ª linha de cada folha de dados (a biblioteca não o faz sozinha). */
+async function saveWithFrozenHeader(XLSX: typeof import("xlsx"), wb: import("xlsx").WorkBook, filename: string, skip: string[] = []) {
+  const { unzipSync, zipSync, strFromU8, strToU8 } = await import("fflate");
+  const files = unzipSync(new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" })));
+  wb.SheetNames.forEach((name, i) => {
+    const path = `xl/worksheets/sheet${i + 1}.xml`;
+    if (skip.includes(name) || !files[path]) return;
+    files[path] = strToU8(
+      strFromU8(files[path]).replace(
+        /<sheetView ([^>]*?)\/>/,
+        '<sheetView $1><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView>',
+      ),
+    );
+  });
+  const blob = new Blob([zipSync(files)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 
 export async function exportXlsx(
   filename: string,
@@ -66,8 +106,8 @@ export async function exportXlsx(
     "Criado por": i.created_by ?? "",
     "Alterado por": i.updated_by ?? "",
   }));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(msgs.length ? msgs : [{ Recado: "" }]), "Recados");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ints.length ? ints : [{ Tipo: "" }]), "Intervenções");
+  XLSX.utils.book_append_sheet(wb, dataSheet(XLSX, msgs, { Recado: "" }), "Recados");
+  XLSX.utils.book_append_sheet(wb, dataSheet(XLSX, ints, { Tipo: "" }), "Intervenções");
   if (tasks) {
     const resMap = new Map(tasks.results.map((r) => [r.template_id, r]));
     const rows = tasks.templates.map((t) => {
@@ -84,9 +124,9 @@ export async function exportXlsx(
         "Alterado por": r?.updated_by ?? "",
       };
     });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ Tarefa: "" }]), "Tarefas");
+    XLSX.utils.book_append_sheet(wb, dataSheet(XLSX, rows, { Tarefa: "" }), "Tarefas");
   }
-  XLSX.writeFile(wb, filename);
+  await saveWithFrozenHeader(XLSX, wb, filename);
 }
 
 export async function exportAll(from: string, to: string, shift?: string) {
@@ -141,7 +181,7 @@ export async function exportAll(from: string, to: string, shift?: string) {
   sum["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
   XLSX.utils.book_append_sheet(wb, sum, "Resumo");
   for (const s of sheets) {
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s.rows.length ? s.rows : [{ "Sem registos": "" }]), s.name);
+    XLSX.utils.book_append_sheet(wb, dataSheet(XLSX, s.rows as Record<string, unknown>[], { "Sem registos": "" }), s.name);
   }
-  XLSX.writeFile(wb, exportFileName("plano-carga-itom", from, to, shift));
+  await saveWithFrozenHeader(XLSX, wb, exportFileName("plano-carga-itom", from, to, shift), ["Resumo"]);
 }
