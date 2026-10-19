@@ -10,7 +10,7 @@ import { useTasks, type TaskTemplate } from "@/lib/data";
 import type { ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
-export const SPORADIC_CATEGORIES = ["Aplicacional - CTT", "Requests - CTT", "Tarefas Esporádicas Processamentos"];
+export const SPORADIC_CATEGORIES = ["Aplicacional - CTT", "Requests - CTT", "Processamento"];
 
 const RESULTS = [
   { key: "ok", label: "OK", cls: "bg-success text-primary-foreground" },
