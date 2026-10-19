@@ -97,6 +97,9 @@ export function cycleAppliesOn(cycle: string, date: string): boolean {
   const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
   const i = days.findIndex((n) => c.startsWith(n));
   if (i >= 0) return i === wd;
+  const ord = c.match(/^(\d)\s*[ªa]?\s*feira/);
+  if (ord) return Number(ord[1]) - 1 === wd;
+  if (c.startsWith("mensal") && c.includes("ult")) return new Date(Date.UTC(y, m, 0)).getUTCDate() === d;
   const mm = c.match(/mensal.*?(\d+)/);
   if (mm) return Number(mm[1]) === d;
   return true;
