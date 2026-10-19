@@ -37,3 +37,15 @@ describe("cycleAppliesOn", () => {
   it("monthly day 5", () => { expect(cycleAppliesOn("MENSAL - DIA 5", "2026-10-05")).toBe(true); expect(cycleAppliesOn("MENSAL - DIA 5", "2026-10-06")).toBe(false); });
   it("daily always", () => expect(cycleAppliesOn("DIÁRIO", "2026-10-18")).toBe(true));
 });
+
+describe("cycleAppliesOn – ciclos dos jobs", () => {
+  it("2ª Feira só na segunda", () => {
+    expect(cycleAppliesOn("2ª Feira", "2026-10-19")).toBe(true);
+    expect(cycleAppliesOn("2ª Feira", "2026-10-20")).toBe(false);
+  });
+  it("5ª Feira na quinta", () => expect(cycleAppliesOn("5ª Feira", "2026-10-22")).toBe(true));
+  it("Mensal / Últ.Dia no último dia do mês", () => {
+    expect(cycleAppliesOn("Mensal / Últ.Dia", "2026-10-31")).toBe(true);
+    expect(cycleAppliesOn("Mensal / Últ.Dia", "2026-10-30")).toBe(false);
+  });
+});

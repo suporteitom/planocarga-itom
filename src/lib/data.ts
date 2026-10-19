@@ -126,6 +126,8 @@ export function useRealtimeSync() {
       interventions: ["interventions"],
       task_templates: ["tasks"],
       task_results: ["tasks"],
+      job_templates: ["jobs"],
+      job_results: ["jobs"],
     };
     let ch = supabase.channel("passagem-turno");
     for (const table of Object.keys(map)) {
@@ -150,6 +152,24 @@ export function useTasks(date: string) {
       const [t, r] = await Promise.all([
         supabase.from("task_templates").select("*").eq("active", true).order("category").order("sort").order("time_start"),
         supabase.from("task_results").select("*").eq("shift_date", date),
+      ]);
+      if (t.error) throw t.error;
+      if (r.error) throw r.error;
+      return { templates: t.data, results: r.data };
+    },
+  });
+}
+
+export type JobTemplate = Tables<"job_templates">;
+export type JobResult = Tables<"job_results">;
+
+export function useJobs(date: string) {
+  return useQuery({
+    queryKey: ["jobs", date],
+    queryFn: async () => {
+      const [t, r] = await Promise.all([
+        supabase.from("job_templates").select("*").eq("active", true).order("sort").range(0, 4999),
+        supabase.from("job_results").select("*").eq("shift_date", date).range(0, 4999),
       ]);
       if (t.error) throw t.error;
       if (r.error) throw r.error;
