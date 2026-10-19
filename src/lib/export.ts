@@ -30,6 +30,46 @@ export function summaryRows(
   ];
 }
 
+/** Larguras de coluna (em caracteres) a partir do cabeçalho e do conteúdo, entre 8 e 60. */
+export function columnWidths(rows: Record<string, unknown>[]) {
+  const keys = rows.length ? Object.keys(rows[0]) : [];
+  return keys.map((k) => {
+    const longest = rows.reduce((n, r) => Math.max(n, String(r[k] ?? "").length), k.length);
+    return { wch: Math.min(60, Math.max(8, longest + 2)) };
+  });
+}
+
+/** Folha de dados com filtro no cabeçalho e larguras ajustadas. */
+function dataSheet(XLSX: typeof import("xlsx"), rows: Record<string, unknown>[], empty: Record<string, unknown>) {
+  const data = rows.length ? rows : [empty];
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = columnWidths(data);
+  if (ws["!ref"]) ws["!autofilter"] = { ref: ws["!ref"] };
+  return ws;
+}
+
+/** Grava o livro congelando a 1.ª linha de cada folha de dados (a biblioteca não o faz sozinha). */
+async function saveWithFrozenHeader(XLSX: typeof import("xlsx"), wb: import("xlsx").WorkBook, filename: string, skip: string[] = []) {
+  const { unzipSync, zipSync, strFromU8, strToU8 } = await import("fflate");
+  const files = unzipSync(new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" })));
+  wb.SheetNames.forEach((name, i) => {
+    const path = `xl/worksheets/sheet${i + 1}.xml`;
+    if (skip.includes(name) || !files[path]) return;
+    files[path] = strToU8(
+      strFromU8(files[path]).replace(
+        /<sheetView ([^>]*?)\/>/,
+        '<sheetView $1><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView>',
+      ),
+    );
+  });
+  const blob = new Blob([zipSync(files)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 
 export async function exportXlsx(
   filename: string,

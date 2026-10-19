@@ -56,3 +56,12 @@ describe("summaryRows", () => {
     expect(rows[0]?.[0]).toBe("PLANO DE CARGA - ITOM");
   });
 });
+
+import { columnWidths } from "../lib/export";
+describe("columnWidths", () => {
+  it("ajusta ao maior texto, com mínimo 8 e máximo 60", () => {
+    expect(columnWidths([{ Tipo: "ab", Recado: "x".repeat(100), Cliente: "Cliente grande" }])).toEqual([
+      { wch: 8 }, { wch: 60 }, { wch: 16 },
+    ]);
+  });
+});
