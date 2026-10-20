@@ -90,7 +90,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
   };
   const notes = (t: JobTemplate) => {
     const n = results.get(t.id)?.notes ?? "";
-    return <Input key={n} className="h-7" defaultValue={n} onBlur={(e) => e.target.value !== n && setResult(t, { notes: e.target.value })} />;
+    return <AutoTextarea key={n} className="min-w-48 rounded-md border border-input bg-transparent px-2 py-1 text-sm" defaultValue={n} onBlur={(e) => e.target.value !== n && setResult(t, { notes: e.target.value })} />;
   };
   const sel = "h-8 rounded border border-input bg-background px-2 text-sm";
 

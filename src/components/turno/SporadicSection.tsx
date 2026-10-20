@@ -86,7 +86,7 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
                           ))}
                         </div>
                       </td>
-                      <td className="p-2"><Input key={r?.notes ?? ""} className="h-7" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
+                      <td className="p-2"><AutoTextarea key={r?.notes ?? ""} className="min-w-48 rounded-md border border-input bg-transparent px-2 py-1 text-sm" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
                       <td className="p-2"><Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)} title="Excluir"><Trash2 className="h-4 w-4" /></Button></td>
                     </tr>
                   );
