@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Intervention, Message } from "@/lib/data";
-import { exportAll, exportFileName, exportXlsx } from "@/lib/export";
+import { exportAll, exportFileName, exportXlsx, previewExport, previewFromSheets, type ExportPreview } from "@/lib/export";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { SHIFTS, addDays, brDate, fromSp, shiftLabel, shiftOf, spParts } from "@/lib/shifts";
 
@@ -20,6 +21,29 @@ export function HistoryPanel({ onOpenShift }: { onOpenShift: (date: string, shif
   const [kw, setKw] = useState("");
   const [res, setRes] = useState<{ m: Message[]; i: Intervention[] } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<{ data: ExportPreview; kind: "all" | "period" } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const openAll = async () => {
+    setBusy(true);
+    try { setPreview({ data: await previewExport(from, to, shift || undefined), kind: "all" }); }
+    catch { toast.error("Não foi possível preparar a prévia"); }
+    finally { setBusy(false); }
+  };
+  const openPeriod = () => {
+    if (!res) return;
+    setPreview({ data: previewFromSheets(from, to, shift || undefined, [{ name: "Recados", rows: res.m }, { name: "Intervenções", rows: res.i }]), kind: "period" });
+  };
+  const download = async () => {
+    if (!preview) return;
+    setBusy(true);
+    try {
+      if (preview.kind === "all") await exportAll(from, to, shift || undefined);
+      else if (res) await exportXlsx(exportFileName("passagem-turno", from, to, shift), res.m, res.i);
+      setPreview(null);
+    } catch { toast.error("Não foi possível exportar"); }
+    finally { setBusy(false); }
+  };
 
   const search = async () => {
     setLoading(true);
@@ -46,6 +70,35 @@ export function HistoryPanel({ onOpenShift }: { onOpenShift: (date: string, shif
 
   return (
     <div className="grid gap-4 p-3 md:p-4">
+      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Prévia da exportação</DialogTitle>
+            <DialogDescription>Confira o conteúdo antes de baixar o Excel.</DialogDescription>
+          </DialogHeader>
+          {preview && (
+            <div className="grid gap-3 text-sm">
+              <div className="grid grid-cols-2 gap-1">
+                <span className="text-muted-foreground">Período</span><span className="font-mono">{preview.data.period}</span>
+                <span className="text-muted-foreground">Turno</span><span>{preview.data.shift}</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border text-left text-xs text-muted-foreground"><th className="py-1">Guia</th><th className="py-1 text-right">Registos</th></tr></thead>
+                <tbody>
+                  {preview.data.sheets.map((s) => (
+                    <tr key={s.name} className="border-b border-border"><td className="py-1">{s.name}</td><td className="py-1 text-right font-mono">{s.count}</td></tr>
+                  ))}
+                  <tr className="font-semibold"><td className="py-1">Total</td><td className="py-1 text-right font-mono">{preview.data.total}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setPreview(null)}>Cancelar</Button>
+            <Button size="sm" onClick={download} disabled={busy}><Download className="mr-1 h-3.5 w-3.5" />Baixar Excel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-card p-3">
         <Field label="De"><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-8 font-mono text-xs" /></Field>
         <Field label="Até"><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-8 font-mono text-xs" /></Field>
@@ -60,11 +113,11 @@ export function HistoryPanel({ onOpenShift }: { onOpenShift: (date: string, shif
         <Field label="Pessoa"><Input value={person} onChange={(e) => setPerson(e.target.value)} className="h-8 w-28 text-xs" /></Field>
         <Field label="Palavra-chave"><Input value={kw} onChange={(e) => setKw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} className="h-8 w-40 text-xs" /></Field>
         <Button size="sm" onClick={search} disabled={loading}><Search className="mr-1 h-3.5 w-3.5" />Buscar</Button>
-        <Button size="sm" onClick={async () => { try { await exportAll(from, to, shift || undefined); } catch { toast.error("Não foi possível exportar"); } }}>
+        <Button size="sm" onClick={openAll} disabled={busy}>
           <Download className="mr-1 h-3.5 w-3.5" />{shift ? `Exportar ${shiftLabel(shift)} (Excel)` : "Exportar tudo (Excel)"}
         </Button>
         {res && (
-          <Button size="sm" variant="outline" onClick={() => exportXlsx(exportFileName("passagem-turno", from, to, shift), res.m, res.i)}>
+          <Button size="sm" variant="outline" onClick={openPeriod}>
             <Download className="mr-1 h-3.5 w-3.5" />Exportar período
           </Button>
         )}

@@ -65,3 +65,30 @@ describe("columnWidths", () => {
     ]);
   });
 });
+
+import { previewFromSheets } from "../lib/export";
+describe("previewFromSheets", () => {
+  it("mostra período, turno e registos por guia com total", () => {
+    const p = previewFromSheets("2026-10-19", "2026-10-19", "tarde", [
+      { name: "Recados", rows: [1, 2] },
+      { name: "Intervenções", rows: [] },
+      { name: "Monitoramento de Jobs", rows: [1, 2, 3] },
+    ]);
+    expect(p).toEqual({
+      period: "19/10/2026",
+      shift: "Tarde",
+      sheets: [
+        { name: "Recados", count: 2 },
+        { name: "Intervenções", count: 0 },
+        { name: "Monitoramento de Jobs", count: 3 },
+      ],
+      total: 5,
+    });
+  });
+  it("usa 'Todos' sem turno e intervalo de datas", () => {
+    const p = previewFromSheets("2026-10-12", "2026-10-19", undefined, []);
+    expect(p.shift).toBe("Todos");
+    expect(p.period).toBe("12/10/2026 a 19/10/2026");
+    expect(p.total).toBe(0);
+  });
+});
