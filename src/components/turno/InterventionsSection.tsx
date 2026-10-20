@@ -140,10 +140,10 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
           </thead>
           <tbody>
             {draftNew && (
-              <Row key="new" item={draftNew} isNew onSave={insertNew} onCancel={() => setDraftNew(null)} />
+              <Row key="new" item={draftNew} isNew shiftDate={shiftRef.date} onSave={insertNew} onCancel={() => setDraftNew(null)} />
             )}
             {rows.map((i) => (
-              <Row key={i.id} item={i} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={() => remove(i.id)} />
+              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={() => remove(i.id)} />
             ))}
             {rows.length === 0 && !draftNew && (
               <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
@@ -161,8 +161,8 @@ const Td = ({ children }: { children: ReactNode }) => (
 
 const FIELDS = ["type", "client", "ticket", "start_at", "end_at", "email_subject", "sent_by", "sent_at", "notes", "status"] as const;
 
-function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
-  item: Partial<Intervention>; isNew?: boolean;
+function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }: {
+  item: Partial<Intervention>; isNew?: boolean; shiftDate: string;
   onSave: (patch: Partial<Intervention>) => Promise<boolean>;
   onCancel?: () => void; onDuplicate?: () => void; onRemove?: () => void;
 }) {
@@ -206,7 +206,7 @@ function Row({ item, isNew, onSave, onCancel, onDuplicate, onRemove }: {
     >
       <Td><Cell {...cellProps} value={d.type ?? ""} list="types-list" onChange={(v) => set({ type: nn(v) })} className="w-28" /></Td>
       <Td><Cell {...cellProps} value={d.client ?? ""} onChange={(v) => set({ client: nn(v) })} className="w-28" /></Td>
-      <Td><Cell {...cellProps} type="date" value={sp.date} onChange={(v) => v && set({ start_at: fromSp(v, sp.time).toISOString() })} className="w-32 font-mono" /></Td>
+      <Td><Cell {...cellProps} type="date" value={sp.date} onChange={(v) => v && set({ start_at: fromSp(v, sp.time).toISOString() })} className={cn("w-32 font-mono", sp.date === shiftDate && "bg-warning font-semibold text-warning-foreground")} /></Td>
       <Td><Cell {...cellProps} value={d.ticket ?? ""} onChange={(v) => set({ ticket: nn(v) })} className="w-24 font-mono" /></Td>
       <Td><Cell {...cellProps} type="time" value={sp.time} onChange={(v) => v && set({ start_at: fromSp(sp.date, v).toISOString() })} className="w-20 font-mono" /></Td>
       <Td><Cell {...cellProps} type="time" value={d.end_at ? spParts(d.end_at).time : ""} onChange={(v) => {
