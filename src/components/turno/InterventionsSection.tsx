@@ -1,3 +1,4 @@
+import { AutoTextarea } from "./AutoTextarea";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";

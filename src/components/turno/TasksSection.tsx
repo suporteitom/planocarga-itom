@@ -1,3 +1,4 @@
+import { AutoTextarea } from "./AutoTextarea";
 import { useState } from "react";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
