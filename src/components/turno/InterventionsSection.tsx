@@ -1,3 +1,4 @@
+import { AutoTextarea } from "./AutoTextarea";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -217,7 +218,19 @@ function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }
       <Td><Cell {...cellProps} value={d.email_subject ?? ""} onChange={(v) => set({ email_subject: nn(v) })} className="w-48" /></Td>
       <Td><Cell {...cellProps} value={d.sent_by ?? ""} list="members-list" onChange={(v) => set({ sent_by: nn(v) })} className="w-28" /></Td>
       <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.sent_at ?? null).dt} onChange={(v) => set({ sent_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
-      <Td><Cell {...cellProps} value={d.notes ?? ""} onChange={(v) => set({ notes: nn(v) })} className="w-56" /></Td>
+      <Td>
+        <AutoTextarea
+          value={d.notes ?? ""}
+          readOnly={!editing}
+          tabIndex={!editing ? -1 : undefined}
+          onChange={(e) => set({ notes: nn(e.target.value) })}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); confirmSave(); }
+            if (e.key === "Escape") cancel();
+          }}
+          className={cn("w-56 rounded-sm bg-transparent px-1 py-0.5 outline-none", !editing ? "cursor-default" : "bg-background ring-1 ring-ring/40 focus:ring-ring")}
+        />
+      </Td>
       <Td>
         <select value={d.status ?? "planejada"} disabled={!editing} onChange={(e) => set({ status: e.target.value })} className={cn("rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
           {STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}

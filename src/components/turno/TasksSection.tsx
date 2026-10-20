@@ -1,3 +1,4 @@
+import { AutoTextarea } from "./AutoTextarea";
 import { useState } from "react";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -175,7 +176,7 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
                         ))}
                       </div>
                     </td>
-                    <td className="p-2"><Input key={r?.notes ?? ""} className="h-7" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
+                    <td className="p-2"><AutoTextarea key={r?.notes ?? ""} className="min-w-48 rounded-md border border-input bg-transparent px-2 py-1 text-sm" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
                     <td className="p-2">
                       <div className="flex gap-1">
                         {editing ? (
