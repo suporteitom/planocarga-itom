@@ -232,7 +232,15 @@ function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }
         />
       </Td>
       <Td>
-        <select value={d.status ?? "planejada"} disabled={!editing} onChange={(e) => set({ status: e.target.value })} className={cn("rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
+        <select value={d.status ?? "planejada"} disabled={busy} onChange={async (e) => {
+          const v = e.target.value;
+          if (editing) return set({ status: v });
+          setD((x) => ({ ...x, status: v }));
+          setBusy(true);
+          const ok = await onSave({ status: v });
+          setBusy(false);
+          if (!ok) setD(item);
+        }} className={cn("cursor-pointer rounded px-1.5 py-0.5 font-medium outline-none", st.cls)}>
           {STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
         </select>
       </Td>
