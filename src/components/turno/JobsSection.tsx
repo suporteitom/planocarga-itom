@@ -1,5 +1,6 @@
 import { AutoTextarea } from "./AutoTextarea";
 import { useState } from "react";
+import { usePersistentFilter, shiftFilterKey } from "@/lib/filterStore";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,8 +27,9 @@ type Draft = { job_name: string; bi_folder: string; environment: string; shift: 
 export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
   const qc = useQueryClient();
   const { data } = useJobs(shiftRef.date);
-  const [shiftF, setShiftF] = useState("all");
-  const [cycleSel, setCycleSel] = useState<string[] | null>(null);
+  const fk = shiftFilterKey(shiftRef.date, shiftRef.shift);
+  const [shiftF, setShiftF] = usePersistentFilter(`jobs-shift:${fk}`, "all");
+  const [cycleSel, setCycleSel] = usePersistentFilter<string[] | null>(`jobs-cycle:${fk}`, null);
   const [cyclesOpen, setCyclesOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
