@@ -35,7 +35,10 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   const rows = useMemo(() => {
     const r = data.filter(
       (i) =>
-        (i.status !== "concluida" || !i.concluded_at || spParts(i.concluded_at).date === shiftRef.date) &&
+        (i.status !== "concluida" || !i.concluded_at || (
+          spParts(i.concluded_at).date === shiftRef.date &&
+          spParts(i.concluded_at).date <= spParts(i.start_at).date
+        )) &&
         (!fType || i.type === fType) &&
         (!fClient || (i.client ?? "").toLowerCase().includes(fClient.toLowerCase())) &&
         (!fTicket || (i.ticket ?? "").toLowerCase().includes(fTicket.toLowerCase())),
