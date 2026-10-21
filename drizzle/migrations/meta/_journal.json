@@ -29,6 +29,13 @@
       "when": 1792425434017,
       "tag": "0003_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792591899190,
+      "tag": "0004_interventions_concluded_at",
+      "breakpoints": true
     }
   ]
 }

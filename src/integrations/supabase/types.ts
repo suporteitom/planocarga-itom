@@ -71,6 +71,7 @@ export type Database = {
       interventions: {
         Row: {
           client: string | null
+          concluded_at: string | null
           created_at: string
           created_by: string | null
           email_subject: string | null
@@ -88,6 +89,7 @@ export type Database = {
         }
         Insert: {
           client?: string | null
+          concluded_at?: string | null
           created_at?: string
           created_by?: string | null
           email_subject?: string | null
@@ -105,6 +107,7 @@ export type Database = {
         }
         Update: {
           client?: string | null
+          concluded_at?: string | null
           created_at?: string
           created_by?: string | null
           email_subject?: string | null
