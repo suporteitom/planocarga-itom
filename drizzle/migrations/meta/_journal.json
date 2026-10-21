@@ -36,6 +36,13 @@
       "when": 1792591899190,
       "tag": "0004_interventions_concluded_at",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792592000000,
+      "tag": "0005_require_login",
+      "breakpoints": true
     }
   ]
 }

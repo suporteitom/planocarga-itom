@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { UserRound } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { LogOut, UserRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShiftHeader } from "@/components/turno/ShiftHeader";
 import { MessagesSection } from "@/components/turno/MessagesSection";
@@ -15,7 +17,7 @@ import { useAttendance, useInterventions, useMessages, useRealtimeSync, useTasks
 import { exportXlsx } from "@/lib/export";
 import { shiftLabel, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Plano de Carga · ITOM" },
@@ -33,6 +35,8 @@ const FUTURE_TABS: { key: string; label: string }[] = [];
 
 function Index() {
   useRealtimeSync();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { name, setName } = useCurrentUser();
   const [shiftRef, setShiftRef] = useState<ShiftRef>(() => shiftOf());
   const [tab, setTab] = useState("recados");
@@ -75,6 +79,18 @@ function Index() {
               <UserRound className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Você:</span>
               <NamePicker value={name} onSelect={setName} placeholder="Escolha seu nome" className={"h-7 w-40 " + (!name ? "border-destructive" : "")} />
+              <button
+                type="button"
+                className="ml-2 flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+                onClick={async () => {
+                  await queryClient.cancelQueries();
+                  queryClient.clear();
+                  await supabase.auth.signOut();
+                  navigate({ to: "/auth", replace: true });
+                }}
+              >
+                <LogOut className="h-3 w-3" /> Sair
+              </button>
             </div>
           </div>
           <div className="overflow-x-auto px-3 md:px-4">
