@@ -15,7 +15,7 @@ import { useAttendance, useInterventions, useMessages, useRealtimeSync, useTasks
 import { exportXlsx } from "@/lib/export";
 import { shiftLabel, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Plano de Carga · ITOM" },
