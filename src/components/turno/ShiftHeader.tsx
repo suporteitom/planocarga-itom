@@ -38,6 +38,7 @@ export function ShiftHeader({
     if (!user) { toast.error("Escolha seu nome no topo antes de editar."); return; }
     try {
       await setShiftStatus(shiftRef, s, user);
+      if (s === "encerrado") (await import("@/lib/filterStore")).clearFilters(`${shiftRef.date}_${shiftRef.shift}`);
       if (s === "em_andamento" && status === "pendente" && !people.some((p) => p.member_name === user)) {
         const id = await getOrCreateShift(shiftRef, user);
         await supabase.from("shift_attendance").insert({ shift_id: id, member_name: user, created_by: user });
