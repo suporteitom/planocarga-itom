@@ -35,6 +35,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   const rows = useMemo(() => {
     const r = data.filter(
       (i) =>
+        (i.status !== "concluida" || !i.concluded_at || spParts(i.concluded_at).date === shiftRef.date) &&
         (!fType || i.type === fType) &&
         (!fClient || (i.client ?? "").toLowerCase().includes(fClient.toLowerCase())) &&
         (!fTicket || (i.ticket ?? "").toLowerCase().includes(fTicket.toLowerCase())),
@@ -44,7 +45,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
       const vb = (b[sort.k] ?? "") as string;
       return (va < vb ? -1 : va > vb ? 1 : 0) * (sort.asc ? 1 : -1);
     });
-  }, [data, fType, fClient, fTicket, sort]);
+  }, [data, fType, fClient, fTicket, sort, shiftRef.date]);
 
   const guard = () => {
     if (!user) toast.error("Escolha seu nome no topo antes de editar.");
