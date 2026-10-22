@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, UserRound } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { amIAdmin } from "@/lib/admin.functions";
+import { LogOut, UserRound, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShiftHeader } from "@/components/turno/ShiftHeader";
@@ -79,6 +81,7 @@ function Index() {
               <UserRound className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Você:</span>
               <NamePicker value={name} onSelect={setName} placeholder="Escolha seu nome" className={"h-7 w-40 " + (!name ? "border-destructive" : "")} />
+              <AdminLink />
               <button
                 type="button"
                 className="ml-2 flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
@@ -149,5 +152,16 @@ function Index() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function AdminLink() {
+  const fn = useServerFn(amIAdmin);
+  const { data } = useQuery({ queryKey: ["am-admin"], queryFn: () => fn() });
+  if (!data) return null;
+  return (
+    <Link to="/admin" className="ml-2 flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-accent">
+      <Users className="h-3 w-3" /> Contas
+    </Link>
   );
 }
