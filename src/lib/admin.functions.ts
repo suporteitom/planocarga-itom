@@ -42,7 +42,7 @@ export const listAccounts = createServerFn({ method: "GET" })
       .map<TeamAccount>((u) => ({
         id: u.id,
         username: toUser(u.email),
-        name: (u.user_metadata?.name as string) ?? "",
+        name: (u.user_metadata?.["name"] as string) ?? "",
         active: !u.banned_until || new Date(u.banned_until) < new Date(),
         admin: admins.has(u.id),
         lastSignIn: u.last_sign_in_at ?? null,
@@ -82,9 +82,9 @@ export const updateAccount = createServerFn({ method: "POST" })
     if (self && (data.active === false || data.admin === false))
       throw new Error("Você não pode desativar nem tirar o acesso de administrador da sua própria conta.");
     const attrs: Record<string, unknown> = {};
-    if (data.name !== undefined) attrs.user_metadata = { name: data.name.trim() };
-    if (data.password) attrs.password = data.password;
-    if (data.active !== undefined) attrs.ban_duration = data.active ? "none" : "876000h";
+    if (data.name !== undefined) attrs["user_metadata"] = { name: data.name.trim() };
+    if (data.password) attrs["password"] = data.password;
+    if (data.active !== undefined) attrs["ban_duration"] = data.active ? "none" : "876000h";
     if (Object.keys(attrs).length) {
       const { error } = await admin.auth.admin.updateUserById(data.id, attrs);
       if (error) throw new Error(error.message);
