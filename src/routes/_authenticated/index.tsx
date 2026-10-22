@@ -79,6 +79,7 @@ function Index() {
               <UserRound className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Você:</span>
               <NamePicker value={name} onSelect={setName} placeholder="Escolha seu nome" className={"h-7 w-40 " + (!name ? "border-destructive" : "")} />
+              <AdminLink />
               <button
                 type="button"
                 className="ml-2 flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
