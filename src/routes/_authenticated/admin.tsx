@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-type Form = { id?: string; username: string; name: string; password: string; admin: boolean };
+type Form = { id?: string; username: string; name: string; email: string; password: string; admin: boolean };
 
 function AdminPage() {
   const qc = useQueryClient();
@@ -56,8 +56,8 @@ function AdminPage() {
   async function save() {
     if (!form) return;
     const done = form.id
-      ? await run(() => updateFn({ data: { id: form.id!, name: form.name, admin: form.admin, ...(form.password ? { password: form.password } : {}) } }), "Conta atualizada.")
-      : await run(() => createFn({ data: { username: form.username, name: form.name, password: form.password, admin: form.admin } }), "Conta criada.");
+      ? await run(() => updateFn({ data: { id: form.id!, name: form.name, admin: form.admin, ...(form.email ? { email: form.email } : {}), ...(form.password ? { password: form.password } : {}) } }), "Conta atualizada.")
+      : await run(() => createFn({ data: { username: form.username, name: form.name, email: form.email, admin: form.admin, redirectTo: `${window.location.origin}/reset-password` } }), "Convite enviado por e-mail.");
     if (done) setForm(null);
   }
 
@@ -74,18 +74,19 @@ function AdminPage() {
       <header className="flex items-center gap-3 border-b bg-sidebar px-4 py-3">
         <Link to="/" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3 w-3" /> Voltar</Link>
         <span className="font-mono text-lg font-bold tracking-tight text-primary">▌CONTAS DA EQUIPE</span>
-        <Button size="sm" className="ml-auto" onClick={() => setForm({ username: "", name: "", password: "", admin: false })}><Plus className="mr-1 h-4 w-4" /> Nova conta</Button>
+        <Button size="sm" className="ml-auto" onClick={() => setForm({ username: "", name: "", email: "", password: "", admin: false })}><Plus className="mr-1 h-4 w-4" /> Nova conta</Button>
       </header>
       <div className="overflow-x-auto p-4">
         <table className="w-full border text-sm">
           <thead className="bg-muted text-left text-xs">
-            <tr>{["Usuário", "Nome", "Administrador", "Ativa", "Último acesso", ""].map((h) => <th key={h} className="border px-2 py-1">{h}</th>)}</tr>
+            <tr>{["Login", "Nome", "E-mail", "Administrador", "Ativa", "Último acesso", ""].map((h) => <th key={h} className="border px-2 py-1">{h}</th>)}</tr>
           </thead>
           <tbody>
             {accounts.map((a: TeamAccount) => (
               <tr key={a.id} className={a.active ? "" : "text-muted-foreground"}>
                 <td className="border px-2 py-1 font-mono">{a.username}</td>
                 <td className="border px-2 py-1">{a.name}</td>
+                <td className="border px-2 py-1 text-xs">{a.email || "—"}</td>
                 <td className="border px-2 py-1">{a.admin ? "Sim" : "Não"}</td>
                 <td className="border px-2 py-1">
                   <Switch checked={a.active} disabled={busy} aria-label={`Ativa ${a.username}`}
@@ -93,7 +94,7 @@ function AdminPage() {
                 </td>
                 <td className="border px-2 py-1 text-xs">{a.lastSignIn ? new Date(a.lastSignIn).toLocaleString("pt-BR", { timeZone: "Europe/Lisbon" }) : "—"}</td>
                 <td className="border px-2 py-1">
-                  <Button size="sm" variant="ghost" aria-label={`Editar ${a.username}`} onClick={() => setForm({ id: a.id, username: a.username, name: a.name, password: "", admin: a.admin })}><Pencil className="h-3 w-3" /></Button>
+                  <Button size="sm" variant="ghost" aria-label={`Editar ${a.username}`} onClick={() => setForm({ id: a.id, username: a.username, name: a.name, email: a.email, password: "", admin: a.admin })}><Pencil className="h-3 w-3" /></Button>
                 </td>
               </tr>
             ))}
@@ -108,16 +109,23 @@ function AdminPage() {
           {form && (
             <div className="space-y-3">
               {!form.id && (
-                <label className="block space-y-1 text-xs font-medium">Usuário
+                <label className="block space-y-1 text-xs font-medium">Login
                   <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="ex.: joao.silva" />
                 </label>
               )}
               <label className="block space-y-1 text-xs font-medium">Nome
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </label>
-              <label className="block space-y-1 text-xs font-medium"><span className="flex items-center gap-1"><KeyRound className="h-3 w-3" />{form.id ? "Nova senha (deixe vazio para manter)" : "Senha"}</span>
-                <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <label className="block space-y-1 text-xs font-medium">E-mail da empresa
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="nome@empresa.com" />
               </label>
+              {form.id ? (
+                <label className="block space-y-1 text-xs font-medium"><span className="flex items-center gap-1"><KeyRound className="h-3 w-3" />Nova senha (deixe vazio para manter)</span>
+                  <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                </label>
+              ) : (
+                <p className="text-xs text-muted-foreground">A pessoa recebe um e-mail com um link para criar a própria senha.</p>
+              )}
               <label className="flex items-center gap-2 text-xs font-medium">
                 <Switch checked={form.admin} onCheckedChange={(v) => setForm({ ...form, admin: v })} /> Administrador
               </label>

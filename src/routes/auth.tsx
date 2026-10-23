@@ -4,6 +4,8 @@ import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useServerFn } from "@tanstack/react-start";
+import { loginWithUsername } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -31,14 +33,21 @@ function AuthPage() {
   const [pass, setPass] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const loginFn = useServerFn(loginWithUsername);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setErr(null);
-    const { error } = await supabase.auth.signInWithPassword({ email: toLoginEmail(user), password: pass });
+    let ok = false;
+    if (user.includes("@")) {
+      ok = !(await supabase.auth.signInWithPassword({ email: toLoginEmail(user), password: pass })).error;
+    } else {
+      const r = await loginFn({ data: { username: user, password: pass } }).catch(() => null);
+      if (r?.ok) ok = !(await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token })).error;
+    }
     setBusy(false);
-    if (error) return setErr("Usuário ou senha inválidos.");
+    if (!ok) return setErr("Usuário ou senha inválidos.");
     navigate({ to: "/", replace: true });
   }
 
@@ -50,7 +59,7 @@ function AuthPage() {
           <p className="flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Acesso restrito à equipe</p>
         </div>
         <div className="space-y-1">
-          <label htmlFor="u" className="text-xs font-medium">Usuário</label>
+          <label htmlFor="u" className="text-xs font-medium">Login ou e-mail</label>
           <Input id="u" autoFocus autoComplete="username" value={user} onChange={(e) => setUser(e.target.value)} required />
         </div>
         <div className="space-y-1">
