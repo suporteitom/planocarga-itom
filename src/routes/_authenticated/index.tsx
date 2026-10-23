@@ -13,7 +13,6 @@ import { TasksSection } from "@/components/turno/TasksSection";
 import { SporadicSection } from "@/components/turno/SporadicSection";
 import { JobsSection } from "@/components/turno/JobsSection";
 import { HistoryPanel } from "@/components/turno/HistoryPanel";
-import { NamePicker } from "@/components/turno/NamePicker";
 import { useCurrentUser } from "@/lib/identity";
 import { useAttendance, useInterventions, useMessages, useRealtimeSync, useTasks } from "@/lib/data";
 import { exportXlsx } from "@/lib/export";
@@ -39,7 +38,7 @@ function Index() {
   useRealtimeSync();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { name, setName } = useCurrentUser();
+  const { name } = useCurrentUser();
   const [shiftRef, setShiftRef] = useState<ShiftRef>(() => shiftOf());
   const [tab, setTab] = useState("recados");
   const { data: msgs } = useMessages(shiftRef);
@@ -80,7 +79,7 @@ function Index() {
             <div className="ml-auto flex items-center gap-2">
               <UserRound className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Você:</span>
-              <NamePicker value={name} onSelect={setName} placeholder="Escolha seu nome" className={"h-7 w-40 " + (!name ? "border-destructive" : "")} />
+              <span className="text-xs font-semibold">{name}</span>
               <AdminLink />
               <button
                 type="button"

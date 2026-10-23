@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type TeamAccount = {
   id: string;
   username: string;
+  email: string;
   name: string;
   active: boolean;
   admin: boolean;
@@ -41,7 +42,8 @@ export const listAccounts = createServerFn({ method: "GET" })
     return data.users
       .map<TeamAccount>((u) => ({
         id: u.id,
-        username: toUser(u.email),
+        username: (u.user_metadata?.["username"] as string) ?? toUser(u.email),
+        email: u.email?.endsWith("@itom.local") ? "" : (u.email ?? ""),
         name: (u.user_metadata?.["name"] as string) ?? "",
         active: !u.banned_until || new Date(u.banned_until) < new Date(),
         admin: admins.has(u.id),
@@ -52,27 +54,64 @@ export const listAccounts = createServerFn({ method: "GET" })
 
 export const createAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { username: string; name: string; password: string; admin: boolean }) => {
-    if (!/^[a-z0-9._-]{2,40}$/i.test(d.username.trim())) throw new Error("Usuário inválido (use letras, números, . _ -).");
-    if (d.password.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
+  .inputValidator((d: { username: string; name: string; email: string; admin: boolean; redirectTo: string }) => {
+    if (!/^[a-z0-9._-]{2,40}$/i.test(d.username.trim())) throw new Error("Login inválido (use letras, números, . _ -).");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim())) throw new Error("E-mail inválido.");
+    if (!d.name.trim()) throw new Error("Informe o nome.");
     return d;
   })
   .handler(async ({ data, context }) => {
     const admin = await assertAdmin(context);
-    const { data: res, error } = await admin.auth.admin.createUser({
-      email: toEmail(data.username),
-      password: data.password,
-      email_confirm: true,
-      user_metadata: { name: data.name.trim() },
+    const username = data.username.trim().toLowerCase();
+    const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    if (list?.users.some((u) => ((u.user_metadata?.["username"] as string) ?? toUser(u.email)).toLowerCase() === username))
+      throw new Error("Esse login já existe.");
+    const { data: res, error } = await admin.auth.admin.inviteUserByEmail(data.email.trim().toLowerCase(), {
+      data: { name: data.name.trim(), username },
+      redirectTo: data.redirectTo,
     });
-    if (error) throw new Error(error.message.includes("already") ? "Esse usuário já existe." : error.message);
+    if (error) throw new Error(error.message.includes("already") ? "Esse e-mail já está cadastrado." : error.message);
     if (data.admin) await admin.from("user_roles").insert({ user_id: res.user.id, role: "admin" });
     return { ok: true };
   });
 
+/** Membros da equipe = contas ativas (para escalar no turno). */
+export const listTeam = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    if (error) throw new Error(error.message);
+    return data.users
+      .filter((u) => !u.banned_until || new Date(u.banned_until) < new Date())
+      .map((u) => ({ id: u.id, name: ((u.user_metadata?.["name"] as string) || toUser(u.email)).trim() }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+/** Login por usuário: resolve o e-mail no servidor (não expõe e-mails) e devolve a sessão. */
+export const loginWithUsername = createServerFn({ method: "POST" })
+  .inputValidator((d: { username: string; password: string }) => d)
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const u = data.username.trim().toLowerCase();
+    let email = `${u}@itom.local`;
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const found = list?.users.find((x) => ((x.user_metadata?.["username"] as string) ?? "").toLowerCase() === u);
+    if (found?.email) email = found.email;
+    const { createClient } = await import("@supabase/supabase-js");
+    const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+    const c = createClient(process.env["SUPABASE_URL"]!, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: (input, init) => { const h = new Headers(init?.headers); if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization"); h.set("apikey", key); return fetch(input, { ...init, headers: h }); } },
+    });
+    const { data: s, error } = await c.auth.signInWithPassword({ email, password: data.password });
+    if (error || !s.session) return { ok: false as const };
+    return { ok: true as const, access_token: s.session.access_token, refresh_token: s.session.refresh_token };
+  });
+
 export const updateAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; name?: string; password?: string; admin?: boolean; active?: boolean }) => {
+  .inputValidator((d: { id: string; name?: string; email?: string; password?: string; admin?: boolean; active?: boolean }) => {
     if (d.password !== undefined && d.password.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
     return d;
   })
@@ -83,6 +122,7 @@ export const updateAccount = createServerFn({ method: "POST" })
       throw new Error("Você não pode desativar nem tirar o acesso de administrador da sua própria conta.");
     const attrs: Record<string, unknown> = {};
     if (data.name !== undefined) attrs["user_metadata"] = { name: data.name.trim() };
+    if (data.email) attrs["email"] = data.email.trim().toLowerCase();
     if (data.password) attrs["password"] = data.password;
     if (data.active !== undefined) attrs["ban_duration"] = data.active ? "none" : "876000h";
     if (Object.keys(attrs).length) {

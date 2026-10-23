@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { auditCreate, auditUpdate } from "@/lib/identity";
-import { useInterventions, useMembers, useTypes, type Intervention } from "@/lib/data";
+import { useInterventions, useTypes, type Intervention } from "@/lib/data";
+import { useTeam } from "@/components/turno/NamePicker";
 import { addDays, dtLocalToIso, fromSp, shiftWindow, spParts, type ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ type SortKey = "type" | "client" | "ticket" | "start_at";
 export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
   const { data = [] } = useInterventions(shiftRef);
   const { data: types = [] } = useTypes();
-  const { data: members = [] } = useMembers();
+  const { data: members = [] } = useTeam();
   const [fType, setFType] = useState("");
   const [fClient, setFClient] = useState("");
   const [fTicket, setFTicket] = useState("");
