@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { auditCreate, auditUpdate } from "@/lib/identity";
-import { useInterventions, useMembers, useTypes, type Intervention } from "@/lib/data";
+import { useInterventions, useTypes, type Intervention } from "@/lib/data";
+import { useTeam } from "@/components/turno/NamePicker";
 import { addDays, dtLocalToIso, fromSp, shiftWindow, spParts, type ShiftRef } from "@/lib/shifts";
 import { cn } from "@/lib/utils";
 
