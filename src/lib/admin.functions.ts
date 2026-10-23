@@ -40,6 +40,7 @@ export const listAccounts = createServerFn({ method: "GET" })
     const { data: roles } = await admin.from("user_roles").select("user_id").eq("role", "admin");
     const admins = new Set((roles ?? []).map((r) => r.user_id));
     return data.users
+      .filter((u) => u.email !== SUPERUSER_EMAIL)
       .map<TeamAccount>((u) => ({
         id: u.id,
         username: (u.user_metadata?.["username"] as string) ?? toUser(u.email),
@@ -83,7 +84,7 @@ export const listTeam = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     if (error) throw new Error(error.message);
     return data.users
-      .filter((u) => !u.banned_until || new Date(u.banned_until) < new Date())
+      .filter((u) => u.email !== SUPERUSER_EMAIL && (!u.banned_until || new Date(u.banned_until) < new Date()))
       .map((u) => ({ id: u.id, name: ((u.user_metadata?.["name"] as string) || toUser(u.email)).trim() }))
       .sort((a, b) => a.name.localeCompare(b.name));
   });
