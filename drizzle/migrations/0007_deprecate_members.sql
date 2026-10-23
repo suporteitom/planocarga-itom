@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.members IS 'DEPRECATED: team members now come from registered user accounts';
