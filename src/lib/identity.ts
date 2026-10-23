@@ -1,28 +1,17 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-/**
- * Identidade do usuário atual. Nesta versão (sem login) é apenas um nome escolhido
- * e guardado no navegador. Para adicionar login depois, troque a implementação
- * deste hook para ler o usuário autenticado — o restante do app só usa `name`.
- */
-const KEY = "pt-current-user";
-const listeners = new Set<(n: string) => void>();
-
+/** Identidade = conta conectada. Nome vem do cadastro (área de Contas). */
 export function useCurrentUser() {
   const [name, setNameState] = useState("");
   useEffect(() => {
-    setNameState(localStorage.getItem(KEY) ?? "");
-    const fn = (n: string) => setNameState(n);
-    listeners.add(fn);
-    return () => {
-      listeners.delete(fn);
-    };
+    const apply = (u: { email?: string; user_metadata?: Record<string, unknown> } | null | undefined) =>
+      setNameState(((u?.user_metadata?.["name"] as string) || (u?.email ?? "").split("@")[0] || "").trim());
+    supabase.auth.getUser().then(({ data }) => apply(data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => apply(s?.user));
+    return () => sub.subscription.unsubscribe();
   }, []);
-  const setName = (n: string) => {
-    localStorage.setItem(KEY, n);
-    listeners.forEach((l) => l(n));
-  };
-  return { name, setName };
+  return { name, setName: (_: string) => {} };
 }
 
 export const auditCreate = (name: string) => ({ created_by: name, updated_by: name });

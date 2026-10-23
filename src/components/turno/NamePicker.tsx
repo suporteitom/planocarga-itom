@@ -1,12 +1,19 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { ensureMember, useMembers } from "@/lib/data";
+import { listTeam } from "@/lib/admin.functions";
 import { cn } from "@/lib/utils";
 
-/** Escolher um nome da lista de membros, ou digitar um novo (que é cadastrado). */
+export function useTeam() {
+  const fn = useServerFn(listTeam);
+  return useQuery({ queryKey: ["team"], queryFn: () => fn(), staleTime: 60_000 });
+}
+
+/** Escolher um membro da equipe — apenas contas cadastradas e ativas. */
 export function NamePicker({
   value,
   onSelect,
@@ -23,17 +30,8 @@ export function NamePicker({
   size?: "sm" | "default";
 }) {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
-  const { data: members = [] } = useMembers();
-  const list = members.filter((m) => !exclude.includes(m.name));
-  const exists = members.some((m) => m.name.toLowerCase() === q.trim().toLowerCase());
-
-  const pick = async (name: string) => {
-    await ensureMember(name);
-    onSelect(name.trim());
-    setOpen(false);
-    setQ("");
-  };
+  const { data: team = [] } = useTeam();
+  const list = team.filter((m) => !exclude.includes(m.name));
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -45,24 +43,17 @@ export function NamePicker({
       </PopoverTrigger>
       <PopoverContent className="w-60 p-0" align="start">
         <Command>
-          <CommandInput placeholder="Buscar ou digitar nome…" value={q} onValueChange={setQ} />
+          <CommandInput placeholder="Buscar…" />
           <CommandList>
-            <CommandEmpty>Nenhum membro encontrado.</CommandEmpty>
+            <CommandEmpty>Nenhum usuário cadastrado.</CommandEmpty>
             <CommandGroup>
               {list.map((m) => (
-                <CommandItem key={m.id} value={m.name} onSelect={() => pick(m.name)}>
+                <CommandItem key={m.id} value={m.name} onSelect={() => { onSelect(m.name); setOpen(false); }}>
                   <Check className={cn("mr-2 h-4 w-4", value === m.name ? "opacity-100" : "opacity-0")} />
                   {m.name}
                 </CommandItem>
               ))}
             </CommandGroup>
-            {q.trim() && !exists && (
-              <CommandGroup>
-                <CommandItem value={`__new_${q}`} onSelect={() => pick(q)}>
-                  <UserPlus className="mr-2 h-4 w-4" /> Adicionar “{q.trim()}”
-                </CommandItem>
-              </CommandGroup>
-            )}
           </CommandList>
         </Command>
       </PopoverContent>
