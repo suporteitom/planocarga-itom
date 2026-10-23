@@ -16,6 +16,8 @@ const toEmail = (u: string) => {
   return v.includes("@") ? v : `${v}@itom.local`;
 };
 const toUser = (email = "") => email.replace(/@itom\.local$/, "");
+/** Superusuário interno: nunca aparece nas listas de contas nem da equipe. */
+const SUPERUSER_EMAIL = "admin@itom.local";
 
 async function assertAdmin(ctx: { supabase: any; userId: string }) {
   const { data } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" });
