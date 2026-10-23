@@ -26,7 +26,7 @@ type SortKey = "type" | "client" | "ticket" | "start_at";
 export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
   const { data = [] } = useInterventions(shiftRef);
   const { data: types = [] } = useTypes();
-  const { data: members = [] } = useMembers();
+  const { data: members = [] } = useTeam();
   const [fType, setFType] = useState("");
   const [fClient, setFClient] = useState("");
   const [fTicket, setFTicket] = useState("");
