@@ -2,13 +2,13 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, KeyRound, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { amIAdmin, createAccount, listAccounts, updateAccount, type TeamAccount } from "@/lib/admin.functions";
+import { amIAdmin, createAccount, deleteAccount, listAccounts, updateAccount, type TeamAccount } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -32,6 +32,7 @@ function AdminPage() {
   const listFn = useServerFn(listAccounts);
   const createFn = useServerFn(createAccount);
   const updateFn = useServerFn(updateAccount);
+  const deleteFn = useServerFn(deleteAccount);
   const { data: isAdmin, isLoading } = useQuery({ queryKey: ["am-admin"], queryFn: () => isAdminFn() });
   const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: () => listFn(), enabled: !!isAdmin });
   const [form, setForm] = useState<Form | null>(null);
@@ -56,7 +57,7 @@ function AdminPage() {
   async function save() {
     if (!form) return;
     const done = form.id
-      ? await run(() => updateFn({ data: { id: form.id!, name: form.name, admin: form.admin, ...(form.email ? { email: form.email } : {}), ...(form.password ? { password: form.password } : {}) } }), "Conta atualizada.")
+      ? await run(() => updateFn({ data: { id: form.id!, username: form.username, name: form.name, admin: form.admin, ...(form.email ? { email: form.email } : {}), ...(form.password ? { password: form.password } : {}) } }), "Conta atualizada.")
       : await run(() => createFn({ data: { username: form.username, name: form.name, email: form.email, admin: form.admin, redirectTo: `${window.location.origin}/reset-password` } }), "Convite enviado por e-mail.");
     if (done) setForm(null);
   }
@@ -93,8 +94,10 @@ function AdminPage() {
                     onCheckedChange={(v) => run(() => updateFn({ data: { id: a.id, active: v } }), v ? "Conta reativada." : "Conta desativada.")} />
                 </td>
                 <td className="border px-2 py-1 text-xs">{a.lastSignIn ? new Date(a.lastSignIn).toLocaleString("pt-BR", { timeZone: "Europe/Lisbon" }) : "—"}</td>
-                <td className="border px-2 py-1">
+                <td className="border px-2 py-1 whitespace-nowrap">
                   <Button size="sm" variant="ghost" aria-label={`Editar ${a.username}`} onClick={() => setForm({ id: a.id, username: a.username, name: a.name, email: a.email, password: "", admin: a.admin })}><Pencil className="h-3 w-3" /></Button>
+                  <Button size="sm" variant="ghost" disabled={busy} aria-label={`Excluir ${a.username}`} className="text-destructive"
+                    onClick={() => { if (window.confirm(`Excluir definitivamente a conta "${a.username}"? Esta ação não pode ser desfeita.`)) run(() => deleteFn({ data: { id: a.id } }), "Conta excluída."); }}><Trash2 className="h-3 w-3" /></Button>
                 </td>
               </tr>
             ))}
@@ -108,11 +111,9 @@ function AdminPage() {
           <DialogHeader><DialogTitle>{form?.id ? `Editar ${form.username}` : "Nova conta"}</DialogTitle></DialogHeader>
           {form && (
             <div className="space-y-3">
-              {!form.id && (
-                <label className="block space-y-1 text-xs font-medium">Login
-                  <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="ex.: joao.silva" />
-                </label>
-              )}
+              <label className="block space-y-1 text-xs font-medium">Login
+                <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="ex.: joao.silva" />
+              </label>
               <label className="block space-y-1 text-xs font-medium">Nome
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </label>
