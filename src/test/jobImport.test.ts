@@ -9,6 +9,6 @@ describe("parseJobsPaste", () => {
     expect(j).toMatchObject({ job_name: "ZJOB1", bi_folder: "PASTA", environment: "PRO-940", shift: "manha", cycle: "DU", run_time: "07:30", result: "nexec", notes: "nota" });
   });
   it("marca turno inválido como erro", () => {
-    expect(parseJobsPaste("ZJOB\t\t\tMadrugada")[0].error).toBeTruthy();
+    expect(parseJobsPaste("ZJOB\t\t\tMadrugada")[0]?.error).toBeTruthy();
   });
 });

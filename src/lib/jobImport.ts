@@ -25,7 +25,7 @@ export function parseResult(s: string): string | null {
 
 export function parseTime(s: string): string | null {
   const m = s.trim().match(/^(\d{1,2})[:h.](\d{2})/);
-  if (m) return `${m[1].padStart(2, "0")}:${m[2]}`;
+  if (m) return `${m[1]!.padStart(2, "0")}:${m[2]}`;
   const f = Number(s.replace(",", "."));
   if (s.trim() && !Number.isNaN(f) && f >= 0 && f < 1) {
     const mins = Math.round(f * 1440);
@@ -36,7 +36,7 @@ export function parseTime(s: string): string | null {
 
 export function parseJobsPaste(text: string): ParsedJob[] {
   const lines = text.replace(/\r/g, "").split("\n").filter((l) => l.trim());
-  if (lines.length && norm(lines[0]).startsWith("job")) lines.shift();
+  if (lines.length && norm(lines[0]!).startsWith("job")) lines.shift();
   return lines.map((l) => {
     const c = l.split("\t").map((x) => x.trim().replace(/^"|"$/g, ""));
     const shift = parseShift(c[3] ?? "");

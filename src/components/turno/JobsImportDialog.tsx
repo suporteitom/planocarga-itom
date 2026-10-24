@@ -42,7 +42,7 @@ export function JobsImportDialog({ user, shiftDate, nextSort, existingIds, onDon
         }))).select("id");
         if (error) throw error;
         data.forEach((d, k) => {
-          const r = chunk[k];
+          const r = chunk[k]!;
           if (r.result || r.notes) results.push({ template_id: d.id, shift_date: shiftDate, result: r.result ?? "pendente", notes: r.notes });
         });
       }
