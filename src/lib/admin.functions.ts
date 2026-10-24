@@ -114,8 +114,9 @@ export const loginWithUsername = createServerFn({ method: "POST" })
 
 export const updateAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; name?: string; email?: string; password?: string; admin?: boolean; active?: boolean }) => {
+  .inputValidator((d: { id: string; username?: string; name?: string; email?: string; password?: string; admin?: boolean; active?: boolean }) => {
     if (d.password !== undefined && d.password.length < 6) throw new Error("A senha precisa de pelo menos 6 caracteres.");
+    if (d.username !== undefined && !/^[a-z0-9._-]{2,40}$/i.test(d.username.trim())) throw new Error("Login inválido (use letras, números, . _ -).");
     return d;
   })
   .handler(async ({ data, context }) => {
@@ -123,8 +124,21 @@ export const updateAccount = createServerFn({ method: "POST" })
     const self = data.id === context.userId;
     if (self && (data.active === false || data.admin === false))
       throw new Error("Você não pode desativar nem tirar o acesso de administrador da sua própria conta.");
+    const { data: cur, error: gErr } = await admin.auth.admin.getUserById(data.id);
+    if (gErr || !cur.user) throw new Error("Conta não encontrada.");
+    if (cur.user.email === SUPERUSER_EMAIL) throw new Error("Esta conta não pode ser alterada.");
+    const meta: Record<string, unknown> = { ...(cur.user.user_metadata ?? {}) };
+    if (data.name !== undefined) meta["name"] = data.name.trim();
+    if (data.username !== undefined) {
+      const username = data.username.trim().toLowerCase();
+      if (username === "admin") throw new Error("Esse login já existe.");
+      const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      if (list?.users.some((u) => u.id !== data.id && ((u.user_metadata?.["username"] as string) ?? toUser(u.email)).toLowerCase() === username))
+        throw new Error("Esse login já existe.");
+      meta["username"] = username;
+    }
     const attrs: Record<string, unknown> = {};
-    if (data.name !== undefined) attrs["user_metadata"] = { name: data.name.trim() };
+    if (data.name !== undefined || data.username !== undefined) attrs["user_metadata"] = meta;
     if (data.email) attrs["email"] = data.email.trim().toLowerCase();
     if (data.password) attrs["password"] = data.password;
     if (data.active !== undefined) attrs["ban_duration"] = data.active ? "none" : "876000h";
@@ -134,5 +148,19 @@ export const updateAccount = createServerFn({ method: "POST" })
     }
     if (data.admin === true) await admin.from("user_roles").upsert({ user_id: data.id, role: "admin" }, { onConflict: "user_id,role" });
     if (data.admin === false) await admin.from("user_roles").delete().eq("user_id", data.id).eq("role", "admin");
+    return { ok: true };
+  });
+
+export const deleteAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const admin = await assertAdmin(context);
+    if (data.id === context.userId) throw new Error("Você não pode excluir a sua própria conta.");
+    const { data: cur } = await admin.auth.admin.getUserById(data.id);
+    if (cur?.user?.email === SUPERUSER_EMAIL) throw new Error("Esta conta não pode ser excluída.");
+    await admin.from("user_roles").delete().eq("user_id", data.id);
+    const { error } = await admin.auth.admin.deleteUser(data.id);
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
