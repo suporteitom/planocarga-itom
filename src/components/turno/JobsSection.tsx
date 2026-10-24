@@ -1,4 +1,5 @@
 import { AutoTextarea } from "./AutoTextarea";
+import { JobsImportDialog } from "./JobsImportDialog";
 import { useState } from "react";
 import { usePersistentFilter, shiftFilterKey } from "@/lib/filterStore";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -152,6 +153,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
               </div>
             </PopoverContent>
           </Popover>
+          <JobsImportDialog user={user} shiftDate={shiftRef.date} nextSort={(allJ.at(-1)?.sort ?? 0) + 1} existingIds={allJ.map((t) => t.id)} onDone={refresh} />
           <span className="ml-auto text-xs text-muted-foreground">{jobs.length} de {allJ.length} jobs</span>
         </div>
         <div className="flex flex-wrap gap-2 border-b border-border p-3">
