@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+ï»¿import { useEffect, useState } from "react";
 import { AlertTriangle, Clock, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
     function checkUpcoming() {
       const now = Date.now();
 
-      // Procura intervenções não concluídas nem canceladas que iniciam em até 30 minutos (e não começaram há mais de 10 min)
+      // Procura intervenÃ§Ãµes nÃ£o concluÃ­das nem canceladas que iniciam em atÃ© 30 minutos (e nÃ£o comeÃ§aram hÃ¡ mais de 10 min)
       const upcoming = interventions
         .filter((i) => i.status !== "concluida" && i.status !== "cancelada" && !dismissedIds.has(i.id))
         .map((i) => {
@@ -52,7 +52,7 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
     try {
       sessionStorage.setItem("dismissed_intervention_alerts", JSON.stringify(Array.from(newSet)));
     } catch {
-      // Ignora erro de storage se indisponível
+      // Ignora erro de storage se indisponÃ­vel
     }
     setActiveAlert(null);
   };
@@ -69,24 +69,24 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
           <div className="flex items-center gap-2 text-warning">
             <AlertTriangle className="h-6 w-6 animate-pulse" />
             <DialogTitle className="text-lg font-bold text-foreground">
-              Atenção: Intervenção Próxima!
+              AtenÃ§Ã£o: IntervenÃ§Ã£o PrÃ³xima!
             </DialogTitle>
           </div>
           <DialogDescription className="text-sm text-muted-foreground">
             {minutesLeft <= 0
-              ? "Esta intervenção está programada para iniciar agora!"
-              : `Esta intervenção iniciará em aproximadamente ${minutesLeft} minuto${minutesLeft === 1 ? "" : "s"}.`}
+              ? "Esta intervenÃ§Ã£o estÃ¡ programada para iniciar agora!"
+              : `Esta intervenÃ§Ã£o iniciarÃ¡ em aproximadamente ${minutesLeft} minuto${minutesLeft === 1 ? "" : "s"}.`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
           <div className="flex justify-between">
             <span className="font-semibold text-muted-foreground">Tipo:</span>
-            <span className="font-medium text-foreground">{item.type || "Não especificado"}</span>
+            <span className="font-medium text-foreground">{item.type || "NÃ£o especificado"}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-semibold text-muted-foreground">Cliente:</span>
-            <span className="font-medium text-foreground">{item.client || "—"}</span>
+            <span className="font-medium text-foreground">{item.client || "â€”"}</span>
           </div>
           {item.ticket && (
             <div className="flex justify-between">
@@ -96,10 +96,10 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
           )}
           <div className="flex justify-between items-center pt-1 border-t border-warning/20">
             <span className="flex items-center gap-1 font-semibold text-muted-foreground">
-              <Clock className="h-4 w-4" /> Início Previsto:
+              <Clock className="h-4 w-4" /> InÃ­cio Previsto:
             </span>
             <span className="font-mono font-bold text-warning-foreground bg-warning px-2 py-0.5 rounded text-xs">
-              {parts.date} às {parts.time}
+              {parts.date} Ã s {parts.time}
             </span>
           </div>
           {item.notes && (
@@ -121,7 +121,7 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
               }}
               className="gap-1"
             >
-              <ExternalLink className="h-3.5 w-3.5" /> Ir para Intervenções
+              <ExternalLink className="h-3.5 w-3.5" /> Ir para IntervenÃ§Ãµes
             </Button>
           )}
           <Button type="button" variant="default" onClick={handleDismiss}>
