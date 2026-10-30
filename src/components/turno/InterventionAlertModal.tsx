@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useInterventions, type Intervention } from "@/lib/data";
 import { spParts } from "@/lib/shifts";
 
+const DEFAULT_TITLE = "Plano de Trabalho - ITOM";
+
 export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterventions?: () => void }) {
   const { data: interventions = [] } = useInterventions();
   const [activeAlert, setActiveAlert] = useState<{ item: Intervention; minutesLeft: number } | null>(null);
@@ -17,6 +19,7 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
     }
   });
 
+  // 1. Verificação periódica de intervenções próximas (a cada 30 segundos)
   useEffect(() => {
     function checkUpcoming() {
       const now = Date.now();
@@ -40,9 +43,34 @@ export function InterventionAlertModal({ onGoToInterventions }: { onGoToInterven
     }
 
     checkUpcoming();
-    const interval = setInterval(checkUpcoming, 30_000); // Checa a cada 30 segundos
+    const interval = setInterval(checkUpcoming, 30_000);
     return () => clearInterval(interval);
   }, [interventions, dismissedIds]);
+
+  // 2. Caption/título dinâmico e piscante enquanto houver alerta ativo
+  useEffect(() => {
+    if (!activeAlert) return;
+
+    const baseTitle = document.title || DEFAULT_TITLE;
+    let toggle = false;
+
+    const timer = setInterval(() => {
+      toggle = !toggle;
+      if (toggle) {
+        const tempo = activeAlert.minutesLeft <= 0 
+          ? "AGORA" 
+          : `${activeAlert.minutesLeft}m`;
+        document.title = `⚠️ [${tempo}] INTERVENÇÃO!`;
+      } else {
+        document.title = `🔔 ${DEFAULT_TITLE}`;
+      }
+    }, 1000); // Alterna a cada 1 segundo
+
+    return () => {
+      clearInterval(timer);
+      document.title = baseTitle; // Restaura o título padrão ao dispensar ou sumir o alerta
+    };
+  }, [activeAlert]);
 
   const handleDismiss = () => {
     if (!activeAlert) return;
