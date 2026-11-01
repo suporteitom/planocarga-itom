@@ -7,9 +7,9 @@ import type { Intervention, Message } from "./data";
 export interface ExportPdfParams {
   from: string;
   to: string;
-  shift?: string;
-  messages?: Message[];
-  interventions?: Intervention[];
+  shift?: string | undefined;
+  messages?: Message[] | undefined;
+  interventions?: Intervention[] | undefined;
 }
 
 export async function exportPdf({ from, to, shift, messages, interventions }: ExportPdfParams) {
