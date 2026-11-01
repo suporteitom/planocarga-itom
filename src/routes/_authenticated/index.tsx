@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/")({
     meta: [
       { title: "Plano de Trabalho · ITOM" },
       { name: "description", content: "Recados, intervenções planejadas e passagem de turno da equipe de operações." },
-      { property: "og:title", content: "Plano de Trbalho · ITOM" },
+      { property: "og:title", content: "Plano de Trabalho · ITOM" },
       { property: "og:description", content: "Registro operacional compartilhado entre os turnos Manhã, Tarde e Noite." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -72,7 +72,7 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-	  <InterventionAlertModal onGoToInterventions={() => setTab("recados")} />
+      <InterventionAlertModal onGoToInterventions={() => setTab("recados")} />
       <Tabs value={tab} onValueChange={setTab}>
         <header className="sticky top-0 z-20 border-b border-border bg-sidebar">
           <div className="flex flex-wrap items-center gap-3 px-3 pt-2 md:px-4">

@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Definir senha · Plano de Carga ITOM" },
-      { name: "description", content: "Crie a sua senha de acesso ao Plano de Carga ITOM." },
-      { property: "og:title", content: "Definir senha · Plano de Carga ITOM" },
-      { property: "og:description", content: "Crie a sua senha de acesso ao Plano de Carga ITOM." },
+      { title: "Definir senha · Plano de Trabalho ITOM" },
+      { name: "description", content: "Crie a sua senha de acesso ao Plano de Trabalho ITOM." },
+      { property: "og:title", content: "Definir senha · Plano de Trabalho ITOM" },
+      { property: "og:description", content: "Crie a sua senha de acesso ao Plano de Trabalho ITOM." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -48,7 +48,7 @@ function ResetPassword() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-md border bg-card p-6 shadow-sm">
-        <div className="font-mono text-lg font-bold tracking-tight text-primary">▌PLANO DE CARGA - ITOM</div>
+        <div className="font-mono text-lg font-bold tracking-tight text-primary">▌PLANO DE TRABALHO - ITOM</div>
         <p className="flex items-center gap-1 text-xs text-muted-foreground"><KeyRound className="h-3 w-3" /> Crie a sua senha de acesso</p>
         {!ready ? (
           <p className="text-sm text-muted-foreground">Abra esta página pelo link recebido no seu e-mail.</p>

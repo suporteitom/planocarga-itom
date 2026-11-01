@@ -18,7 +18,7 @@ export function summaryRows(
 ) {
   const total = sheets.reduce((n, s) => n + s.rows.length, 0);
   return [
-    ["PLANO DE CARGA - ITOM", ""],
+    ["PLANO DE TRABALHO - ITOM", ""],
     ["Gerado em", spParts(generatedAt).br],
     ["Fuso horário", "Lisboa (Europe/Lisbon)"],
     ["Período", from === to ? brDate(from) : `${brDate(from)} a ${brDate(to)}`],

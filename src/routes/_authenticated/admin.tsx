@@ -13,9 +13,9 @@ import { amIAdmin, createAccount, deleteAccount, listAccounts, updateAccount, ty
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Contas da equipe · Plano de Carga ITOM" },
+      { title: "Contas da equipe · Plano de Trabalho ITOM" },
       { name: "description", content: "Gestão das contas de acesso da equipe de operações ITOM." },
-      { property: "og:title", content: "Contas da equipe · Plano de Carga ITOM" },
+      { property: "og:title", content: "Contas da equipe · Plano de Trabalho ITOM" },
       { property: "og:description", content: "Criar, editar e desativar contas da equipe." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
