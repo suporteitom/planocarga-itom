@@ -10,9 +10,9 @@ import { loginWithUsername } from "@/lib/admin.functions";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar · Plano de Carga ITOM" },
+      { title: "Entrar · Plano de Trabalho ITOM" },
       { name: "description", content: "Acesso restrito à equipe de operações ITOM." },
-      { property: "og:title", content: "Entrar · Plano de Carga ITOM" },
+      { property: "og:title", content: "Entrar · Plano de Trabalho ITOM" },
       { property: "og:description", content: "Acesso restrito à equipe de operações ITOM." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -55,7 +55,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-md border bg-card p-6 shadow-sm">
         <div className="space-y-1">
-          <div className="font-mono text-lg font-bold tracking-tight text-primary">▌PLANO DE CARGA - ITOM</div>
+          <div className="font-mono text-lg font-bold tracking-tight text-primary">▌PLANO DE TRABALHO - ITOM</div>
           <p className="flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Acesso restrito à equipe</p>
         </div>
         <div className="space-y-1">

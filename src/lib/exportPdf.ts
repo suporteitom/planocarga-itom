@@ -1,4 +1,4 @@
-﻿import jsPDF from "jspdf";
+import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { brDate, shiftLabel, spParts } from "./shifts";
 import { collectExportData } from "./export";
@@ -7,9 +7,9 @@ import type { Intervention, Message } from "./data";
 export interface ExportPdfParams {
   from: string;
   to: string;
-  shift?: string;
-  messages?: Message[];
-  interventions?: Intervention[];
+  shift?: string | undefined;
+  messages?: Message[] | undefined;
+  interventions?: Intervention[] | undefined;
 }
 
 export async function exportPdf({ from, to, shift, messages, interventions }: ExportPdfParams) {
@@ -27,7 +27,7 @@ export async function exportPdf({ from, to, shift, messages, interventions }: Ex
 
   // Cabeçalho
   doc.setFontSize(16);
-  doc.text("PLANO DE CARGA - ITOM", 14, 15);
+  doc.text("PLANO DE TRABALHO - ITOM", 14, 15);
   doc.setFontSize(10);
   doc.setTextColor(100);
   doc.text(
