@@ -74,6 +74,7 @@ export const createAccount = createServerFn({ method: "POST" })
       redirectTo: data.redirectTo,
     });
     if (error) throw new Error(error.message.includes("already") ? "Esse e-mail já está cadastrado." : error.message);
+    await admin.from("user_roles").insert({ user_id: res.user.id, role: "user" });
     if (data.admin) await admin.from("user_roles").insert({ user_id: res.user.id, role: "admin" });
     return { ok: true };
   });
