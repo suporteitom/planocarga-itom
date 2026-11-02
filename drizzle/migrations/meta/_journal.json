@@ -57,6 +57,13 @@
       "when": 1792793220987,
       "tag": "0007_deprecate_members",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793589735712,
+      "tag": "0008_team_member_rls",
+      "breakpoints": true
     }
   ]
 }
