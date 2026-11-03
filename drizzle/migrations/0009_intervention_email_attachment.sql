@@ -1,0 +1,4 @@
+ALTER TABLE public.interventions ADD COLUMN IF NOT EXISTS attachment_path text, ADD COLUMN IF NOT EXISTS attachment_name text;
+CREATE POLICY "team reads intervention emails" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'intervention-emails' AND public.is_team_member(auth.uid()));
+CREATE POLICY "team uploads intervention emails" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'intervention-emails' AND public.is_team_member(auth.uid()));
+CREATE POLICY "team deletes intervention emails" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'intervention-emails' AND public.is_team_member(auth.uid()));

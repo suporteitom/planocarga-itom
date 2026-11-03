@@ -70,6 +70,8 @@ export type Database = {
       }
       interventions: {
         Row: {
+          attachment_name: string | null
+          attachment_path: string | null
           client: string | null
           concluded_at: string | null
           created_at: string
@@ -88,6 +90,8 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_path?: string | null
           client?: string | null
           concluded_at?: string | null
           created_at?: string
@@ -106,6 +110,8 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          attachment_name?: string | null
+          attachment_path?: string | null
           client?: string | null
           concluded_at?: string | null
           created_at?: string
