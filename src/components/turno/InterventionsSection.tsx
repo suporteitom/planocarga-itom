@@ -108,7 +108,8 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
         status: "planejada", type: "Update", client: em.client, email_subject: em.subject,
         sent_by: em.sender, sent_at: em.sentAt, attachment_name: file.name,
       });
-    } catch {
+    } catch (e) {
+      console.error("Erro ao ler .msg:", e);
       toast.error("Não foi possível ler o e-mail (.msg).");
     }
   };
