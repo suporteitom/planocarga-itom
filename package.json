@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@kenjiuno/msgreader": "^1.29.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -58,6 +59,8 @@
     "embla-carousel-react": "^8.6.0",
     "fflate": "^0.8.3",
     "input-otp": "^1.4.2",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
@@ -72,9 +75,7 @@
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "xlsx": "^0.18.5",
-    "zod": "^3.25.76",
-    "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.4"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -101,7 +102,5 @@
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5",
     "vitest": "^4.1.10"
-	
-
   }
 }
