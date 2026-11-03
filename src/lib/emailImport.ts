@@ -14,11 +14,14 @@ export function clientFromSubject(subject: string): string | null {
 export type ParsedEmail = { subject: string; client: string | null; sender: string | null; sentAt: string | null };
 
 export async function parseMsgFile(file: File): Promise<ParsedEmail> {
-  const { default: MsgReader } = await import("@kenjiuno/msgreader");
+  const mod = (await import("@kenjiuno/msgreader")) as unknown as { default?: unknown };
+  const d0 = mod.default as { default?: unknown } | undefined;
+  const MsgReader = (typeof d0 === "function" ? d0 : d0?.default) as new (b: ArrayBuffer) => { getFileData(): unknown };
   const buf = await file.arrayBuffer();
   const info = new MsgReader(buf).getFileData() as {
-    subject?: string; senderName?: string; senderEmail?: string; clientSubmitTime?: string; messageDeliveryTime?: string; creationTime?: string;
+    subject?: string; senderName?: string; senderEmail?: string; clientSubmitTime?: string; messageDeliveryTime?: string; creationTime?: string; error?: string;
   };
+  if (info.error) throw new Error(info.error);
   const subject = (info.subject ?? file.name.replace(/\.msg$/i, "")).trim();
   const raw = info.clientSubmitTime ?? info.messageDeliveryTime ?? info.creationTime;
   const d = raw ? new Date(raw) : null;
