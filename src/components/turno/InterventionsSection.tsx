@@ -1,9 +1,19 @@
 import { AutoTextarea } from "./AutoTextarea";
 import type React from "react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpDown, Check, Copy, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { ArrowUpDown, Check, Copy, Download, Paperclip, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { parseMsgFile } from "@/lib/emailImport";
+
+async function downloadEmail(path: string, name: string) {
+  const { data, error } = await supabase.storage.from("intervention-emails").download(path);
+  if (error || !data) { toast.error("Não foi possível baixar o e-mail."); return; }
+  const url = URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,12 +94,38 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
     setDraftNew({ start_at: new Date(inShift).toISOString(), status: "planejada" });
   };
 
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const addFromEmail = async (file: File) => {
+    if (!guard()) return;
+    try {
+      const em = await parseMsgFile(file);
+      const { start, end } = shiftWindow(shiftRef);
+      const begin = Math.max(start.getTime(), Date.now() - (Date.now() % 1800000));
+      setPendingFile(file);
+      setDraftNew({
+        start_at: new Date(begin < end.getTime() ? begin : start.getTime()).toISOString(),
+        status: "planejada", type: "Update", client: em.client, email_subject: em.subject,
+        sent_by: em.sender, sent_at: em.sentAt, attachment_name: file.name,
+      });
+    } catch {
+      toast.error("Não foi possível ler o e-mail (.msg).");
+    }
+  };
+
   const insertNew = async (patch: Partial<Intervention>) => {
     if (!guard()) return false;
+    if (pendingFile) {
+      const path = `${crypto.randomUUID()}/${pendingFile.name.replace(/[^\w.\-]+/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("intervention-emails").upload(path, pendingFile, { contentType: "application/vnd.ms-outlook" });
+      if (upErr) { toast.error("Erro ao enviar o anexo."); return false; }
+      patch = { ...patch, attachment_path: path, attachment_name: pendingFile.name };
+    }
     await ensureType(patch.type);
     const { error } = await supabase.from("interventions").insert({ ...(patch as { start_at: string }), ...auditCreate(user) });
     if (error) { toast.error("Erro ao salvar."); return false; }
     setDraftNew(null);
+    setPendingFile(null);
     qc.invalidateQueries({ queryKey: ["interventions"] });
     toast.success("Intervenção adicionada.");
     return true;
@@ -132,6 +168,8 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
         <Input placeholder="Filtrar ticket" value={fTicket} onChange={(e) => setFTicket(e.target.value)} className="h-8 w-28 text-xs" />
         <TypesDialog />
         <Button size="sm" onClick={add} disabled={!!draftNew}><Plus className="mr-1 h-3.5 w-3.5" />Nova linha</Button>
+        <input ref={fileRef} type="file" accept=".msg" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) addFromEmail(f); }} />
+        <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={!!draftNew}><Paperclip className="mr-1 h-3.5 w-3.5" />Nova linha com e-mail</Button>
       </header>
       <datalist id="members-list">{members.map((m) => <option key={m.id} value={m.name} />)}</datalist>
       <datalist id="types-list">{types.map((t) => <option key={t.id} value={t.name} />)}</datalist>
@@ -146,7 +184,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
           </thead>
           <tbody>
             {draftNew && (
-              <Row key="new" item={draftNew} isNew shiftDate={shiftRef.date} onSave={insertNew} onCancel={() => setDraftNew(null)} />
+              <Row key="new" item={draftNew} isNew shiftDate={shiftRef.date} onSave={insertNew} onCancel={() => { setDraftNew(null); setPendingFile(null); }} />
             )}
             {rows.map((i) => (
               <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={() => remove(i.id)} />
@@ -220,7 +258,22 @@ function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }
         const date = v < sp.time ? addDays(sp.date, 1) : sp.date;
         set({ end_at: fromSp(date, v).toISOString() });
       }} className="w-20 font-mono" /></Td>
-      <Td><Cell {...cellProps} value={d.email_subject ?? ""} onChange={(v) => set({ email_subject: nn(v) })} className="w-48" /></Td>
+      <Td>
+        <div className="flex items-center gap-1">
+          <Cell {...cellProps} value={d.email_subject ?? ""} onChange={(v) => set({ email_subject: nn(v) })} className="w-48" />
+          {d.attachment_name && (
+            <button
+              type="button"
+              title={item.attachment_path ? `Baixar ${d.attachment_name}` : `${d.attachment_name} (será anexado ao confirmar)`}
+              className="shrink-0 text-primary hover:opacity-70 disabled:opacity-50"
+              disabled={!item.attachment_path}
+              onClick={() => item.attachment_path && downloadEmail(item.attachment_path, item.attachment_name ?? "email.msg")}
+            >
+              {item.attachment_path ? <Download className="h-3.5 w-3.5" /> : <Paperclip className="h-3.5 w-3.5" />}
+            </button>
+          )}
+        </div>
+      </Td>
       <Td><Cell {...cellProps} value={d.sent_by ?? ""} list="members-list" onChange={(v) => set({ sent_by: nn(v) })} className="w-28" /></Td>
       <Td><Cell {...cellProps} type="datetime-local" value={spParts(d.sent_at ?? null).dt} onChange={(v) => set({ sent_at: dtLocalToIso(v) })} className="w-44 font-mono" /></Td>
       <Td>
