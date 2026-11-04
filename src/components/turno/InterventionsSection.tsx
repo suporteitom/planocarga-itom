@@ -96,6 +96,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
   const addFromEmail = async (file: File) => {
     if (!guard()) return;
     try {
@@ -167,7 +168,23 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   );
 
   return (
-    <section className="min-w-0 rounded-lg border border-border bg-card">
+    <section
+      className="relative min-w-0 rounded-lg border border-border bg-card"
+      onDragOver={(e) => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; if (!dragging) setDragging(true); } }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false); }}
+      onDrop={(e) => {
+        e.preventDefault(); setDragging(false);
+        const f = Array.from(e.dataTransfer.files).find((x) => x.name.toLowerCase().endsWith(".msg"));
+        if (!f) { toast.error("Solte um e-mail do Outlook (.msg)."); return; }
+        if (draftNew) { toast.error("Confirme ou cancele a linha em edição primeiro."); return; }
+        addFromEmail(f);
+      }}
+    >
+      {dragging && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-background/85 text-sm font-semibold text-primary">
+          Solte o e-mail (.msg) aqui para criar a intervenção
+        </div>
+      )}
       <header className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
         <h2 className="mr-auto text-sm font-semibold uppercase tracking-wide">Intervenções planejadas</h2>
         <select value={fType} onChange={(e) => setFType(e.target.value)} className="h-8 rounded-md border border-input bg-background px-2 text-xs">
