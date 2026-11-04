@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpDown, Check, Copy, Download, Paperclip, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
-import { parseMsgFile } from "@/lib/emailImport";
+import { parseMsgFile, windowFromBody } from "@/lib/emailImport";
 
 async function downloadEmail(path: string, name: string) {
   const { data, error } = await supabase.storage.from("intervention-emails").download(path);
@@ -102,12 +102,21 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
       const em = await parseMsgFile(file);
       const { start, end } = shiftWindow(shiftRef);
       const begin = Math.max(start.getTime(), Date.now() - (Date.now() % 1800000));
+      const w = windowFromBody(em.body ?? "");
+      let startAt = new Date(begin < end.getTime() ? begin : start.getTime()).toISOString();
+      let endAt: string | null = null;
+      if (w.date) {
+        const s = w.start ?? "00:00";
+        startAt = fromSp(w.date, s).toISOString();
+        if (w.end) endAt = fromSp(w.end < s ? addDays(w.date, 1) : w.date, w.end).toISOString();
+      }
       setPendingFile(file);
       setDraftNew({
-        start_at: new Date(begin < end.getTime() ? begin : start.getTime()).toISOString(),
+        start_at: startAt, end_at: endAt,
         status: "planejada", type: "Update", client: em.client, email_subject: em.subject,
         sent_by: em.sender, sent_at: em.sentAt, attachment_name: file.name,
       });
+      if (!w.date) toast.info("Data da intervenção não encontrada no e-mail — preencha à mão.");
     } catch (e) {
       console.error("Erro ao ler .msg:", e);
       toast.error("Não foi possível ler o e-mail (.msg).");

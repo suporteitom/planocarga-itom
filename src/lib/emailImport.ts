@@ -11,7 +11,30 @@ export function clientFromSubject(subject: string): string | null {
   return s.split(/\s+/)[0] ?? null;
 }
 
-export type ParsedEmail = { subject: string; client: string | null; sender: string | null; sentAt: string | null };
+const MONTHS = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+
+/** Intervention date (YYYY-MM-DD) and time window from an e-mail body. */
+export function windowFromBody(body: string): { date: string | null; start: string | null; end: string | null } {
+  const t = body.replace(/\s+/g, " ");
+  const p2 = (n: string | number) => String(n).padStart(2, "0");
+  let date: string | null = null;
+  const ext = t.match(/(\d{1,2})\s+de\s+([a-zç]+)\s+(?:de\s+)?(\d{4})/i);
+  const mi = ext ? MONTHS.indexOf(ext[2]!.toLowerCase().replace("marco", "março")) : -1;
+  if (ext && mi >= 0) date = `${ext[3]}-${p2(mi + 1)}-${p2(ext[1]!)}`;
+  else {
+    const num = t.match(/\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b/);
+    if (num) date = `${num[3]}-${p2(num[2]!)}-${p2(num[1]!)}`;
+  }
+  const tm = "(\\d{1,2})\\s*[:h]\\s*(\\d{2})";
+  const w = t.match(new RegExp(`${tm}\\s*(?:[-–—]|às|as|a|até)\\s*${tm}`, "i"));
+  return {
+    date,
+    start: w ? `${p2(w[1]!)}:${w[2]}` : null,
+    end: w ? `${p2(w[3]!)}:${w[4]}` : null,
+  };
+}
+
+export type ParsedEmail = { subject: string; client: string | null; sender: string | null; sentAt: string | null; body: string | null };
 
 /** Reads Outlook .msg (OLE compound file) fully in the browser via cfb. */
 export async function parseMsgFile(file: File): Promise<ParsedEmail> {
@@ -56,5 +79,6 @@ export async function parseMsgFile(file: File): Promise<ParsedEmail> {
     client: clientFromSubject(subject),
     sender: str("0C1A") ?? str("0042") ?? str("0C1F") ?? str("5D01"),
     sentAt: d ? d.toISOString() : null,
+    body: str("1000"),
   };
 }
