@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpDown, Check, Copy, Download, Paperclip, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
-import { parseMsgFile, windowFromBody } from "@/lib/emailImport";
+import { parseMsgFile, typeFromEmail, windowFromBody } from "@/lib/emailImport";
 
 async function downloadEmail(path: string, name: string) {
   const { data, error } = await supabase.storage.from("intervention-emails").download(path);
@@ -113,7 +113,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
       setPendingFile(file);
       setDraftNew({
         start_at: startAt, end_at: endAt,
-        status: "planejada", type: "Update", client: em.client, email_subject: em.subject,
+        status: "planejada", type: typeFromEmail(em.subject, em.body ?? ""), client: em.client, email_subject: em.subject,
         sent_by: em.sender, sent_at: em.sentAt, attachment_name: file.name,
       });
       if (!w.date) toast.info("Data da intervenção não encontrada no e-mail — preencha à mão.");
