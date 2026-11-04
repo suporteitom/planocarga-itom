@@ -27,11 +27,16 @@ export function windowFromBody(body: string): { date: string | null; start: stri
   }
   const tm = "(\\d{1,2})\\s*[:h]\\s*(\\d{2})";
   const w = t.match(new RegExp(`${tm}\\s*(?:[-–—]|às|as|a|até)\\s*${tm}`, "i"));
-  return {
-    date,
-    start: w ? `${p2(w[1]!)}:${w[2]}` : null,
-    end: w ? `${p2(w[3]!)}:${w[4]}` : null,
-  };
+  if (w) return { date, start: `${p2(w[1]!)}:${w[2]}`, end: `${p2(w[3]!)}:${w[4]}` };
+  const one = t.match(/(?:a partir das?|pelas?|às|as|in[ií]cio\s*(?:às|as)?)\s*(\d{1,2})\s*(?:[:h]\s*(\d{2})|h)/i);
+  return { date, start: one ? `${p2(one[1]!)}:${one[2] ?? "00"}` : null, end: null };
+}
+
+/** Intervention type suggested by subject/body. */
+export function typeFromEmail(subject: string, body = ""): string {
+  const t = `${subject} ${body}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (t.includes("alteracao de perfil")) return "Alteração de Perfil";
+  return "Update";
 }
 
 export type ParsedEmail = { subject: string; client: string | null; sender: string | null; sentAt: string | null; body: string | null };
