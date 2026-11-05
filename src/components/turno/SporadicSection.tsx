@@ -63,7 +63,7 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
           <section key={cat} className="overflow-x-auto rounded border border-border bg-card">
             <table className="w-full text-sm">
               <thead className="bg-destructive text-destructive-foreground">
-                <tr><th className="p-2 text-center font-semibold">{cat}</th><th className="w-56 p-2">Resultado</th><th className="p-2">Obs.</th><th className="w-10" /></tr>
+                <tr><th className="p-2 text-left font-semibold">{cat}</th><th className="w-56 p-2 text-left">Resultado</th><th className="p-2 text-left">Obs.</th><th className="w-10" /></tr>
               </thead>
               <tbody>
                 <tr className="border-b border-border bg-muted/30">
