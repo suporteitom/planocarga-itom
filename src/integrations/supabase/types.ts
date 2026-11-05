@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      deleted_interventions: {
+        Row: {
+          data: Json
+          deleted_at: string
+          deleted_by: string | null
+          deleted_by_id: string | null
+          id: string
+          intervention_id: string
+        }
+        Insert: {
+          data: Json
+          deleted_at?: string
+          deleted_by?: string | null
+          deleted_by_id?: string | null
+          id?: string
+          intervention_id: string
+        }
+        Update: {
+          data?: Json
+          deleted_at?: string
+          deleted_by?: string | null
+          deleted_by_id?: string | null
+          id?: string
+          intervention_id?: string
+        }
+        Relationships: []
+      }
       intervention_types: {
         Row: {
           created_at: string

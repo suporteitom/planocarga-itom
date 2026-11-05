@@ -78,6 +78,13 @@
       "when": 1793853348154,
       "tag": "0010_interventions_admin_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793856346897,
+      "tag": "0011_deleted_interventions_audit",
+      "breakpoints": true
     }
   ]
 }
