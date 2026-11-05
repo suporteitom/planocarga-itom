@@ -151,8 +151,10 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
 
   const remove = async (id: string) => {
     if (!guard()) return;
+    if (!isAdmin) { toast.error("Apenas administradores podem excluir intervenções."); return; }
     if (confirm("Excluir esta intervenção?")) {
-      await supabase.from("interventions").delete().eq("id", id);
+      const { error } = await supabase.from("interventions").delete().eq("id", id);
+      if (error) { toast.error("Não foi possível excluir."); return; }
       qc.invalidateQueries({ queryKey: ["interventions"] });
     }
   };
@@ -214,7 +216,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
               <Row key="new" item={draftNew} isNew shiftDate={shiftRef.date} onSave={insertNew} onCancel={() => { setDraftNew(null); setPendingFile(null); }} />
             )}
             {rows.map((i) => (
-              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={() => remove(i.id)} />
+              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={isAdmin ? () => remove(i.id) : undefined} />
             ))}
             {rows.length === 0 && !draftNew && (
               <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
@@ -339,7 +341,7 @@ function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }
           <>
             <Button size="icon" variant="ghost" className="h-6 w-6" title="Editar" onClick={() => setEditing(true)}><Pencil className="h-3 w-3" /></Button>
             <Button size="icon" variant="ghost" className="h-6 w-6" title="Duplicar" onClick={onDuplicate}><Copy className="h-3 w-3" /></Button>
-            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={onRemove}><Trash2 className="h-3 w-3" /></Button>
+            {onRemove && <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={onRemove}><Trash2 className="h-3 w-3" /></Button>}
           </>
         )}
       </td>
