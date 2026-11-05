@@ -61,9 +61,10 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
         const items = all.filter((t) => t.category === cat).sort((a, b) => a.sort - b.sort);
         return (
           <section key={cat} className="overflow-x-auto rounded border border-border bg-card">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[900px] table-fixed text-sm">
+              <colgroup><col /><col className="w-[270px]" /><col className="w-[320px]" /><col className="w-10" /></colgroup>
               <thead className="bg-destructive text-destructive-foreground">
-                <tr><th className="p-2 text-left font-semibold">{cat}</th><th className="w-56 p-2 text-left">Resultado</th><th className="p-2 text-left">Obs.</th><th className="w-10" /></tr>
+                <tr><th className="p-2 text-left font-semibold">{cat}</th><th className="p-2 text-left">Resultado</th><th className="p-2 text-left">Obs.</th><th /></tr>
               </thead>
               <tbody>
                 <tr className="border-b border-border bg-muted/30">
@@ -78,7 +79,7 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
                   const r = results.get(t.id);
                   return (
                     <tr key={t.id} className="border-t border-border">
-                      <td className="p-2">{t.title}</td>
+                      <td className="p-2 break-words">{t.title}</td>
                       <td className="p-2">
                         <div className="flex gap-1">
                           {RESULTS.map((o) => (
@@ -87,7 +88,7 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
                           ))}
                         </div>
                       </td>
-                      <td className="p-2"><AutoTextarea key={r?.notes ?? ""} className="min-w-48 rounded-md border border-input bg-transparent px-2 py-1 text-sm" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
+                      <td className="p-2"><AutoTextarea key={r?.notes ?? ""} className="w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm" defaultValue={r?.notes ?? ""} onBlur={(e) => e.target.value !== (r?.notes ?? "") && setResult(t, { notes: e.target.value })} /></td>
                       <td className="p-2"><Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(t)} title="Excluir"><Trash2 className="h-4 w-4" /></Button></td>
                     </tr>
                   );
