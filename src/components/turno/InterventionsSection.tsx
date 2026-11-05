@@ -2,7 +2,9 @@ import { AutoTextarea } from "./AutoTextarea";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { amIAdmin } from "@/lib/admin.functions";
 import { ArrowUpDown, Check, Copy, Download, Paperclip, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
 import { parseMsgFile, typeFromEmail, windowFromBody } from "@/lib/emailImport";
 
@@ -67,6 +69,8 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   };
 
   const qc = useQueryClient();
+  const checkAdmin = useServerFn(amIAdmin);
+  const { data: isAdmin } = useQuery({ queryKey: ["am-admin"], queryFn: () => checkAdmin() });
   const [draftNew, setDraftNew] = useState<Partial<Intervention> | null>(null);
 
   const ensureType = async (name: string | null | undefined) => {
@@ -151,8 +155,10 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
 
   const remove = async (id: string) => {
     if (!guard()) return;
+    if (!isAdmin) { toast.error("Apenas administradores podem excluir intervenções."); return; }
     if (confirm("Excluir esta intervenção?")) {
-      await supabase.from("interventions").delete().eq("id", id);
+      const { error } = await supabase.from("interventions").delete().eq("id", id);
+      if (error) { toast.error("Não foi possível excluir."); return; }
       qc.invalidateQueries({ queryKey: ["interventions"] });
     }
   };
@@ -214,7 +220,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
               <Row key="new" item={draftNew} isNew shiftDate={shiftRef.date} onSave={insertNew} onCancel={() => { setDraftNew(null); setPendingFile(null); }} />
             )}
             {rows.map((i) => (
-              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={() => remove(i.id)} />
+              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} {...(isAdmin ? { onRemove: () => remove(i.id) } : {})} />
             ))}
             {rows.length === 0 && !draftNew && (
               <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
@@ -235,7 +241,7 @@ const FIELDS = ["type", "client", "ticket", "start_at", "end_at", "email_subject
 function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }: {
   item: Partial<Intervention>; isNew?: boolean; shiftDate: string;
   onSave: (patch: Partial<Intervention>) => Promise<boolean>;
-  onCancel?: () => void; onDuplicate?: () => void; onRemove?: () => void;
+  onCancel?: () => void; onDuplicate?: () => void; onRemove?: (() => void) | undefined;
 }) {
   const [editing, setEditing] = useState(!!isNew);
   const [d, setD] = useState<Partial<Intervention>>(item);
@@ -339,7 +345,7 @@ function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }
           <>
             <Button size="icon" variant="ghost" className="h-6 w-6" title="Editar" onClick={() => setEditing(true)}><Pencil className="h-3 w-3" /></Button>
             <Button size="icon" variant="ghost" className="h-6 w-6" title="Duplicar" onClick={onDuplicate}><Copy className="h-3 w-3" /></Button>
-            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={onRemove}><Trash2 className="h-3 w-3" /></Button>
+            {onRemove && <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" title="Excluir" onClick={onRemove}><Trash2 className="h-3 w-3" /></Button>}
           </>
         )}
       </td>
