@@ -69,6 +69,8 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
   };
 
   const qc = useQueryClient();
+  const checkAdmin = useServerFn(amIAdmin);
+  const { data: isAdmin } = useQuery({ queryKey: ["am-admin"], queryFn: () => checkAdmin() });
   const [draftNew, setDraftNew] = useState<Partial<Intervention> | null>(null);
 
   const ensureType = async (name: string | null | undefined) => {
