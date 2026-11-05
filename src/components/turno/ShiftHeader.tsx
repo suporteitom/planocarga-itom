@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NamePicker } from "./NamePicker";
 import { supabase } from "@/integrations/supabase/client";
 import { getOrCreateShift, setShiftStatus, useAttendance } from "@/lib/data";
 import { SHIFTS, nextShift, prevShift, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts";
@@ -125,7 +124,7 @@ export function ShiftHeader({
           {people.map((p) => (
             <Badge key={p.id} variant="secondary" className="gap-1 pr-1">
               {p.member_name}
-              {canEditTeam && (
+              {canEditTeam && p.member_name === user && (
                 <button onClick={() => removePerson(p.id)} className="rounded hover:bg-background/60" aria-label={`Remover ${p.member_name}`}>
                   <X className="h-3 w-3" />
                 </button>
@@ -133,7 +132,9 @@ export function ShiftHeader({
             </Badge>
           ))}
           {canEditTeam ? (
-            <NamePicker placeholder="+ Adicionar" onSelect={addPerson} exclude={people.map((p) => p.member_name)} className="h-7 w-32" />
+            user && !people.some((p) => p.member_name === user) ? (
+              <Button size="sm" variant="outline" className="h-7" onClick={() => addPerson(user)}>+ Entrar no turno ({user})</Button>
+            ) : null
           ) : status === "pendente" ? (
             <span className="text-xs italic text-muted-foreground">Inicie o turno para registrar a equipe</span>
           ) : null}
