@@ -2,7 +2,9 @@ import { AutoTextarea } from "./AutoTextarea";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { amIAdmin } from "@/lib/admin.functions";
 import { ArrowUpDown, Check, Copy, Download, Paperclip, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
 import { parseMsgFile, typeFromEmail, windowFromBody } from "@/lib/emailImport";
 
