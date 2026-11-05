@@ -220,7 +220,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
               <Row key="new" item={draftNew} isNew shiftDate={shiftRef.date} onSave={insertNew} onCancel={() => { setDraftNew(null); setPendingFile(null); }} />
             )}
             {rows.map((i) => (
-              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} onRemove={isAdmin ? () => remove(i.id) : undefined} />
+              <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} {...(isAdmin ? { onRemove: () => remove(i.id) } : {})} />
             ))}
             {rows.length === 0 && !draftNew && (
               <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
