@@ -241,7 +241,7 @@ const FIELDS = ["type", "client", "ticket", "start_at", "end_at", "email_subject
 function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }: {
   item: Partial<Intervention>; isNew?: boolean; shiftDate: string;
   onSave: (patch: Partial<Intervention>) => Promise<boolean>;
-  onCancel?: () => void; onDuplicate?: () => void; onRemove?: () => void;
+  onCancel?: () => void; onDuplicate?: () => void; onRemove?: (() => void) | undefined;
 }) {
   const [editing, setEditing] = useState(!!isNew);
   const [d, setD] = useState<Partial<Intervention>>(item);
