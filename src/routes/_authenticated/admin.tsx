@@ -6,6 +6,7 @@ import { ArrowLeft, KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput, passwordErrorPt } from "@/components/turno/PasswordInput";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { amIAdmin, createAccount, deleteAccount, listAccounts, updateAccount, type TeamAccount } from "@/lib/admin.functions";
@@ -47,7 +48,7 @@ function AdminPage() {
       await refresh();
       return true;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao salvar.");
+      toast.error(e instanceof Error ? passwordErrorPt(e.message) : "Erro ao salvar.");
       return false;
     } finally {
       setBusy(false);
@@ -122,11 +123,11 @@ function AdminPage() {
               </label>
               {form.id ? (
                 <label className="block space-y-1 text-xs font-medium"><span className="flex items-center gap-1"><KeyRound className="h-3 w-3" />Nova senha (deixe vazio para manter)</span>
-                  <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                  <PasswordInput value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
                 </label>
               ) : (
                 <label className="block space-y-1 text-xs font-medium"><span className="flex items-center gap-1"><KeyRound className="h-3 w-3" />Senha inicial (mín. 6 caracteres)</span>
-                  <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                  <PasswordInput value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
                 </label>
               )}
               <p className="text-xs text-muted-foreground">Ao entrar com uma senha definida aqui, a pessoa é obrigada a criar a sua própria senha.</p>

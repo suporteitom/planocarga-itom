@@ -4,6 +4,7 @@ import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput, passwordErrorPt } from "@/components/turno/PasswordInput";
 import { useServerFn } from "@tanstack/react-start";
 import { loginWithUsername } from "@/lib/admin.functions";
 
@@ -64,7 +65,7 @@ function AuthPage() {
         </div>
         <div className="space-y-1">
           <label htmlFor="p" className="text-xs font-medium">Senha</label>
-          <Input id="p" type="password" autoComplete="current-password" value={pass} onChange={(e) => setPass(e.target.value)} required />
+          <PasswordInput id="p" autoComplete="current-password" value={pass} onChange={(e) => setPass(e.target.value)} required />
         </div>
         {err && <p className="text-xs text-destructive">{err}</p>}
         <Button type="submit" className="w-full" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</Button>

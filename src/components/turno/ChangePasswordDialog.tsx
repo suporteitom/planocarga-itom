@@ -4,6 +4,7 @@ import { KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput, passwordErrorPt } from "@/components/turno/PasswordInput";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /** Troca de senha do próprio utilizador. `forced` = senha provisória: não pode fechar sem trocar. */
@@ -36,7 +37,7 @@ export function ChangePasswordDialog({ open, forced, onClose }: { open: boolean;
       const m = error.message.toLowerCase();
       if (m.includes("current") || m.includes("invalid")) return setErr("Senha atual incorreta.");
       if (m.includes("pwned") || m.includes("leak") || m.includes("weak")) return setErr("Senha fraca ou já exposta em fugas de dados. Escolha outra.");
-      return setErr("Não foi possível alterar a senha: " + error.message);
+      return setErr(passwordErrorPt(error.message));
     }
     toast.success("Senha alterada.");
     reset();
@@ -57,9 +58,9 @@ export function ChangePasswordDialog({ open, forced, onClose }: { open: boolean;
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <Input type="password" placeholder={forced ? "Senha provisória" : "Senha atual"} autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} />
-          <Input type="password" placeholder="Nova senha" autoComplete="new-password" value={p1} onChange={(e) => setP1(e.target.value)} />
-          <Input type="password" placeholder="Repita a nova senha" autoComplete="new-password" value={p2} onChange={(e) => setP2(e.target.value)} />
+          <PasswordInput placeholder={forced ? "Senha provisória" : "Senha atual"} autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} />
+          <PasswordInput placeholder="Nova senha" autoComplete="new-password" value={p1} onChange={(e) => setP1(e.target.value)} />
+          <PasswordInput placeholder="Repita a nova senha" autoComplete="new-password" value={p2} onChange={(e) => setP2(e.target.value)} />
           {err && <p className="text-xs text-destructive">{err}</p>}
           <DialogFooter>
             {!forced && <Button type="button" variant="outline" onClick={() => { reset(); onClose(); }}>Cancelar</Button>}

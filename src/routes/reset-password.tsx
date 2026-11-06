@@ -4,6 +4,7 @@ import { KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput, passwordErrorPt } from "@/components/turno/PasswordInput";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -54,8 +55,8 @@ function ResetPassword() {
           <p className="text-sm text-muted-foreground">Abra esta página pelo link recebido no seu e-mail.</p>
         ) : (
           <>
-            <Input type="password" placeholder="Nova senha" autoComplete="new-password" value={p1} onChange={(e) => setP1(e.target.value)} />
-            <Input type="password" placeholder="Repita a senha" autoComplete="new-password" value={p2} onChange={(e) => setP2(e.target.value)} />
+            <PasswordInput placeholder="Nova senha" autoComplete="new-password" value={p1} onChange={(e) => setP1(e.target.value)} />
+            <PasswordInput placeholder="Repita a senha" autoComplete="new-password" value={p2} onChange={(e) => setP2(e.target.value)} />
             {err && <p className="text-xs text-destructive">{err}</p>}
             <Button type="submit" className="w-full" disabled={busy}>{busy ? "Salvando…" : "Salvar senha"}</Button>
           </>
