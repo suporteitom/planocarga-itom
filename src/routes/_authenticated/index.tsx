@@ -3,7 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { amIAdmin } from "@/lib/admin.functions";
-import { LogOut, UserRound, Users } from "lucide-react";
+import { KeyRound, LogOut, UserRound, Users } from "lucide-react";
+import { ChangePasswordDialog } from "@/components/turno/ChangePasswordDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShiftHeader } from "@/components/turno/ShiftHeader";
@@ -40,7 +41,8 @@ function Index() {
   useRealtimeSync();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { name } = useCurrentUser();
+  const { name, mustChangePassword } = useCurrentUser();
+  const [pwOpen, setPwOpen] = useState(false);
   const [shiftRef, setShiftRef] = useState<ShiftRef>(() => shiftOf());
   const [tab, setTab] = useState("recados");
   const { data: msgs } = useMessages(shiftRef);
@@ -72,6 +74,7 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ChangePasswordDialog open={pwOpen || mustChangePassword} forced={mustChangePassword} onClose={() => setPwOpen(false)} />
       <InterventionAlertModal onGoToInterventions={() => setTab("recados")} />
       <Tabs value={tab} onValueChange={setTab}>
         <header className="sticky top-0 z-20 border-b border-border bg-sidebar">
@@ -84,6 +87,13 @@ function Index() {
               <span className="text-xs text-muted-foreground">Você:</span>
               <span className="text-xs font-semibold">{name}</span>
               <AdminLink />
+              <button
+                type="button"
+                className="ml-2 flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+                onClick={() => setPwOpen(true)}
+              >
+                <KeyRound className="h-3 w-3" /> Alterar senha
+              </button>
               <button
                 type="button"
                 className="ml-2 flex items-center gap-1 rounded border px-2 py-1 text-xs text-muted-foreground hover:bg-accent"

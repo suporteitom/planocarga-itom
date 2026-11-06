@@ -4,14 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 /** Identidade = conta conectada. Nome vem do cadastro (área de Contas). */
 export function useCurrentUser() {
   const [name, setNameState] = useState("");
+  const [mustChangePassword, setMust] = useState(false);
   useEffect(() => {
-    const apply = (u: { email?: string; user_metadata?: Record<string, unknown> } | null | undefined) =>
+    const apply = (u: { email?: string; user_metadata?: Record<string, unknown> } | null | undefined) => {
+      setMust(u?.user_metadata?.["must_change_password"] === true);
       setNameState(((u?.user_metadata?.["name"] as string) || (u?.email ?? "").split("@")[0] || "").trim());
+    };
     supabase.auth.getUser().then(({ data }) => apply(data.user));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => apply(s?.user));
     return () => sub.subscription.unsubscribe();
   }, []);
-  return { name, setName: (_: string) => {} };
+  return { name, mustChangePassword, setName: (_: string) => {} };
 }
 
 export const auditCreate = (name: string) => ({ created_by: name, updated_by: name });

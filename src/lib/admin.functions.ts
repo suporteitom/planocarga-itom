@@ -57,7 +57,8 @@ export const listAccounts = createServerFn({ method: "GET" })
 
 export const createAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { username: string; name: string; email: string; admin: boolean; redirectTo: string }) => {
+  .inputValidator((d: { username: string; name: string; email: string; admin: boolean; password: string; redirectTo?: string }) => {
+    if (!d.password || d.password.length < 6) throw new Error("A senha inicial precisa de pelo menos 6 caracteres.");
     if (!/^[a-z0-9._-]{2,40}$/i.test(d.username.trim())) throw new Error("Login inválido (use letras, números, . _ -).");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim())) throw new Error("E-mail inválido.");
     if (!d.name.trim()) throw new Error("Informe o nome.");
@@ -69,9 +70,11 @@ export const createAccount = createServerFn({ method: "POST" })
     const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
     if (list?.users.some((u) => ((u.user_metadata?.["username"] as string) ?? toUser(u.email)).toLowerCase() === username))
       throw new Error("Esse login já existe.");
-    const { data: res, error } = await admin.auth.admin.inviteUserByEmail(data.email.trim().toLowerCase(), {
-      data: { name: data.name.trim(), username },
-      redirectTo: data.redirectTo,
+    const { data: res, error } = await admin.auth.admin.createUser({
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { name: data.name.trim(), username, must_change_password: true },
     });
     if (error) throw new Error(error.message.includes("already") ? "Esse e-mail já está cadastrado." : error.message);
     await admin.from("user_roles").insert({ user_id: res.user.id, role: "user" });
@@ -138,8 +141,9 @@ export const updateAccount = createServerFn({ method: "POST" })
         throw new Error("Esse login já existe.");
       meta["username"] = username;
     }
+    if (data.password) meta["must_change_password"] = true;
     const attrs: Record<string, unknown> = {};
-    if (data.name !== undefined || data.username !== undefined) attrs["user_metadata"] = meta;
+    if (data.name !== undefined || data.username !== undefined || data.password) attrs["user_metadata"] = meta;
     if (data.email) attrs["email"] = data.email.trim().toLowerCase();
     if (data.password) attrs["password"] = data.password;
     if (data.active !== undefined) attrs["ban_duration"] = data.active ? "none" : "876000h";
