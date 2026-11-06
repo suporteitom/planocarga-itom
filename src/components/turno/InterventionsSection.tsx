@@ -395,7 +395,7 @@ function DeletionsDialog() {
             ))}</tr></thead>
             <tbody>
               {data.map((r) => {
-                const d = (r.data ?? {}) as Record<string, string | null>;
+                const d = (r.data ?? {}) as { type?: string | null; client?: string | null; ticket?: string | null; start_at?: string | null; email_subject?: string | null; status?: string | null };
                 return (
                   <tr key={r.id} className="border-b border-border">
                     <td className="px-2 py-1 font-mono">{spParts(r.deleted_at).br}</td>
