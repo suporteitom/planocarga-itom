@@ -200,6 +200,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
         <Input placeholder="Filtrar cliente" value={fClient} onChange={(e) => setFClient(e.target.value)} className="h-8 w-32 text-xs" />
         <Input placeholder="Filtrar ticket" value={fTicket} onChange={(e) => setFTicket(e.target.value)} className="h-8 w-28 text-xs" />
         <TypesDialog />
+        {isAdmin && <DeletionsDialog />}
         <Button size="sm" onClick={add} disabled={!!draftNew}><Plus className="mr-1 h-3.5 w-3.5" />Nova linha</Button>
         <input ref={fileRef} type="file" accept=".msg" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) addFromEmail(f); }} />
         <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={!!draftNew}><Paperclip className="mr-1 h-3.5 w-3.5" />Nova linha com e-mail</Button>
@@ -368,6 +369,52 @@ function Cell({ value, onChange, type = "text", className, list, readOnly, onKey
       onKeyDown={onKeyDown}
       className={cn("rounded-sm bg-transparent px-1 py-0.5 outline-none", readOnly ? "cursor-default" : "bg-background ring-1 ring-ring/40 focus:ring-ring", className)}
     />
+  );
+}
+
+function DeletionsDialog() {
+  const [open, setOpen] = useState(false);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["deleted-interventions"],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("deleted_interventions").select("*").order("deleted_at", { ascending: false }).limit(500);
+      if (error) throw error;
+      return data;
+    },
+  });
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm" variant="outline"><Trash2 className="mr-1 h-3.5 w-3.5" />Exclusões</Button></DialogTrigger>
+      <DialogContent className="max-w-5xl">
+        <DialogHeader><DialogTitle>Intervenções excluídas</DialogTitle></DialogHeader>
+        <div className="max-h-[60vh] overflow-auto">
+          <table className="w-full border-collapse text-xs">
+            <thead><tr>{["Excluída em", "Excluída por", "Tipo", "Cliente", "Ticket", "Data/Início", "Assunto", "Status"].map((h) => (
+              <th key={h} className="sticky top-0 border-b border-border bg-muted px-2 py-1.5 text-left font-semibold uppercase">{h}</th>
+            ))}</tr></thead>
+            <tbody>
+              {data.map((r) => {
+                const d = (r.data ?? {}) as { type?: string | null; client?: string | null; ticket?: string | null; start_at?: string | null; email_subject?: string | null; status?: string | null };
+                return (
+                  <tr key={r.id} className="border-b border-border">
+                    <td className="px-2 py-1 font-mono">{spParts(r.deleted_at).br}</td>
+                    <td className="px-2 py-1">{r.deleted_by ?? "—"}</td>
+                    <td className="px-2 py-1">{d.type ?? ""}</td>
+                    <td className="px-2 py-1">{d.client ?? ""}</td>
+                    <td className="px-2 py-1 font-mono">{d.ticket ?? ""}</td>
+                    <td className="px-2 py-1 font-mono">{d.start_at ? spParts(d.start_at).br : ""}</td>
+                    <td className="px-2 py-1">{d.email_subject ?? ""}</td>
+                    <td className="px-2 py-1">{STATUSES.find((s) => s.key === d.status)?.label ?? d.status ?? ""}</td>
+                  </tr>
+                );
+              })}
+              {!isLoading && data.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Nenhuma exclusão registada.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
