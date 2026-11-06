@@ -58,7 +58,7 @@ function AdminPage() {
     if (!form) return;
     const done = form.id
       ? await run(() => updateFn({ data: { id: form.id!, username: form.username, name: form.name, admin: form.admin, ...(form.email ? { email: form.email } : {}), ...(form.password ? { password: form.password } : {}) } }), "Conta atualizada.")
-      : await run(() => createFn({ data: { username: form.username, name: form.name, email: form.email, admin: form.admin, redirectTo: `${window.location.origin}/reset-password` } }), "Convite enviado por e-mail.");
+      : await run(() => createFn({ data: { username: form.username, name: form.name, email: form.email, admin: form.admin, password: form.password } }), "Conta criada. A pessoa terá de trocar a senha no primeiro acesso.");
     if (done) setForm(null);
   }
 
@@ -125,8 +125,11 @@ function AdminPage() {
                   <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
                 </label>
               ) : (
-                <p className="text-xs text-muted-foreground">A pessoa recebe um e-mail com um link para criar a própria senha.</p>
+                <label className="block space-y-1 text-xs font-medium"><span className="flex items-center gap-1"><KeyRound className="h-3 w-3" />Senha inicial (mín. 6 caracteres)</span>
+                  <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                </label>
               )}
+              <p className="text-xs text-muted-foreground">Ao entrar com uma senha definida aqui, a pessoa é obrigada a criar a sua própria senha.</p>
               <label className="flex items-center gap-2 text-xs font-medium">
                 <Switch checked={form.admin} onCheckedChange={(v) => setForm({ ...form, admin: v })} /> Administrador
               </label>
