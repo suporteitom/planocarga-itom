@@ -102,6 +102,7 @@ export async function exportXlsx(
     "Quem enviou": i.sent_by ?? "",
     "Data/hora envio": spParts(i.sent_at).br,
     Observações: i.notes ?? "",
+    Prioridade: ({ "1": "1 - Crítico", "2": "2 - Alto", "3": "3 - Moderado" } as Record<string, string>)[i.priority ?? ""] ?? "",
     Status: i.status,
     "Criado por": i.created_by ?? "",
     "Alterado por": i.updated_by ?? "",
