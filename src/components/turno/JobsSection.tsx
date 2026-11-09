@@ -171,7 +171,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
         <div className="max-h-[70vh] overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-destructive/70 text-center text-xs text-destructive-foreground">
-              <tr><th className="p-2 text-left">Job – SAP PRO</th><th className="p-2">BI - Pastas</th><th className="p-2">Ambiente</th><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
+              <tr><th className="p-2">Job – SAP PRO</th><th className="p-2">BI - Pastas</th><th className="p-2">Ambiente</th><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
             </thead>
             <tbody>
               {jobs.map((t) => {
@@ -193,12 +193,12 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
                       </>
                     ) : (
                       <>
-                        <td className="p-2 font-mono text-xs">{t.job_name}</td>
-                        <td className="p-2 text-xs">{t.bi_folder ?? ""}</td>
-                        <td className="p-2 text-xs">{t.environment ?? ""}</td>
-                        <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
-                        <td className="p-2 text-xs">{t.cycle}</td>
-                        <td className="p-2 font-mono text-xs">{t.run_time ?? ""}</td>
+                        <td className="p-2 text-center font-mono text-xs">{t.job_name}</td>
+                        <td className="p-2 text-center text-xs">{t.bi_folder ?? ""}</td>
+                        <td className="p-2 text-center text-xs">{t.environment ?? ""}</td>
+                        <td className="p-2 text-center text-xs">{shiftLabel(t.shift)}</td>
+                        <td className="p-2 text-center text-xs">{t.cycle}</td>
+                        <td className="p-2 text-center font-mono text-xs">{t.run_time ?? ""}</td>
                       </>
                     )}
                     <td className="p-2">{resultBtns(t)}</td>

@@ -140,7 +140,7 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-destructive/70 text-center text-xs text-destructive-foreground">
-            <tr><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora I</th><th className="p-2">Hora F</th><th className="p-2 text-left">Tarefa</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
+            <tr><th className="p-2">Turno</th><th className="p-2">Ciclo</th><th className="p-2">Hora I</th><th className="p-2">Hora F</th><th className="p-2">Tarefa</th><th className="p-2">Resultado</th><th className="p-2">Obs.</th><th /></tr>
           </thead>
           {[...groups].map(([cat, items]) => (
             <tbody key={cat}>
@@ -163,11 +163,11 @@ export function TasksSection({ shiftRef, user }: { shiftRef: ShiftRef; user: str
                       </>
                     ) : (
                       <>
-                        <td className="p-2 text-xs">{shiftLabel(t.shift)}</td>
-                        <td className="p-2 text-xs">{t.cycle}</td>
-                        <td className="p-2 font-mono text-xs">{t.time_start ?? ""}</td>
-                        <td className="p-2 font-mono text-xs">{t.time_end ?? ""}</td>
-                        <td className="p-2">{t.title}</td>
+                        <td className="p-2 text-center text-xs">{shiftLabel(t.shift)}</td>
+                        <td className="p-2 text-center text-xs">{t.cycle}</td>
+                        <td className="p-2 text-center font-mono text-xs">{t.time_start ?? ""}</td>
+                        <td className="p-2 text-center font-mono text-xs">{t.time_end ?? ""}</td>
+                        <td className="p-2 text-center">{t.title}</td>
                       </>
                     )}
                     <td className="p-2">
