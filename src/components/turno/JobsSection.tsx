@@ -39,7 +39,6 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
   const need = () => { if (!user) { toast.error("Escolha seu nome no topo antes de registrar."); return false; } return true; };
 
   const all = data?.templates ?? [];
-  const situ = all.filter((t) => t.kind === "situacao");
   const allJ = all.filter((t) => t.kind === "job");
   const cycles = [...new Set(allJ.map((t) => t.cycle))].sort();
   const jobs = allJ
@@ -100,23 +99,6 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
 
   return (
     <div className="grid gap-4">
-      <section className="rounded border border-border bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-destructive/70 text-xs text-destructive-foreground">
-            <tr><th className="p-2 text-left">Tarefa</th><th className="p-2 text-center">Estado</th><th className="p-2">Obs.</th></tr>
-          </thead>
-          <tbody>
-            {situ.map((t) => (
-              <tr key={t.id} className="border-t border-border">
-                <td className="p-2">{t.job_name}</td>
-                <td className="p-2">{resultBtns(t)}</td>
-                <td className="p-2">{notes(t)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
       <section className="rounded border border-border bg-card">
         <div className="bg-destructive py-2 text-center text-lg font-semibold text-destructive-foreground">Monitoramento de Jobs</div>
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
