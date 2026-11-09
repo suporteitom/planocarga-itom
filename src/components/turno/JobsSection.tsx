@@ -103,7 +103,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
       <section className="rounded border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-destructive/70 text-xs text-destructive-foreground">
-            <tr><th className="p-2 text-left">Tarefa</th><th className="p-2">Estado</th><th className="p-2">Obs.</th></tr>
+            <tr><th className="p-2 text-left">Tarefa</th><th className="p-2 text-center">Estado</th><th className="p-2">Obs.</th></tr>
           </thead>
           <tbody>
             {situ.map((t) => (
