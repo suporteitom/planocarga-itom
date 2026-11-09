@@ -84,7 +84,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
   const resultBtns = (t: JobTemplate) => {
     const cur = results.get(t.id)?.result ?? "pendente";
     return (
-      <div className="flex gap-1">
+      <div className="flex flex-wrap justify-center gap-1">
         {RESULTS.map((o) => (
           <button key={o.key} type="button" onClick={() => setResult(t, { result: o.key })}
             className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", cur === o.key ? o.cls : "bg-muted text-muted-foreground")}>{o.label}</button>
@@ -103,7 +103,7 @@ export function JobsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: stri
       <section className="rounded border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-destructive/70 text-xs text-destructive-foreground">
-            <tr><th className="p-2 text-left">Tarefa</th><th className="p-2">Estado</th><th className="p-2">Obs.</th></tr>
+            <tr><th className="p-2 text-left">Tarefa</th><th className="p-2 text-center">Estado</th><th className="p-2">Obs.</th></tr>
           </thead>
           <tbody>
             {situ.map((t) => (

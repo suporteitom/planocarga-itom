@@ -81,7 +81,7 @@ export function SporadicSection({ shiftRef, user }: { shiftRef: ShiftRef; user: 
                     <tr key={t.id} className="border-t border-border">
                       <td className="p-2 break-words">{t.title}</td>
                       <td className="p-2">
-                        <div className="flex gap-1">
+                        <div className="flex flex-wrap justify-center gap-1">
                           {RESULTS.map((o) => (
                             <button key={o.key} type="button" onClick={() => setResult(t, { result: o.key })}
                               className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", (r?.result ?? "pendente") === o.key ? o.cls : "bg-muted text-muted-foreground")}>{o.label}</button>
