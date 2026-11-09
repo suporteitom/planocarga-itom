@@ -107,6 +107,7 @@ export type Database = {
           end_at: string | null
           id: string
           notes: string | null
+          priority: string | null
           sent_at: string | null
           sent_by: string | null
           start_at: string
@@ -127,6 +128,7 @@ export type Database = {
           end_at?: string | null
           id?: string
           notes?: string | null
+          priority?: string | null
           sent_at?: string | null
           sent_by?: string | null
           start_at: string
@@ -147,6 +149,7 @@ export type Database = {
           end_at?: string | null
           id?: string
           notes?: string | null
+          priority?: string | null
           sent_at?: string | null
           sent_by?: string | null
           start_at?: string

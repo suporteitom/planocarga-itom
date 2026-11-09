@@ -85,6 +85,13 @@
       "when": 1793856346897,
       "tag": "0011_deleted_interventions_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794261676447,
+      "tag": "0012_interventions_priority",
+      "breakpoints": true
     }
   ]
 }
