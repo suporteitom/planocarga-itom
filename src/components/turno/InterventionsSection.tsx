@@ -34,6 +34,13 @@ export const STATUSES = [
   { key: "cancelada", label: "Cancelada", cls: "bg-muted text-muted-foreground line-through" },
 ];
 
+export const PRIORITIES = [
+  { key: "1", label: "1 - Crítico", cls: "bg-destructive text-destructive-foreground" },
+  { key: "2", label: "2 - Alto", cls: "bg-warning text-warning-foreground" },
+  { key: "3", label: "3 - Moderado", cls: "bg-info/15 text-info" },
+];
+export const priorityLabel = (p: string | null | undefined) => PRIORITIES.find((x) => x.key === p)?.label ?? "";
+
 type SortKey = "type" | "client" | "ticket" | "start_at";
 
 export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; user: string }) {
@@ -213,7 +220,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
             <tr>
               <Th k="type">Tipo</Th><Th k="client">Cliente</Th><Th k="start_at">Data</Th><Th k="ticket">Ticket</Th>
               <Th>Início</Th><Th>Fim previsto</Th><Th>E-mail (assunto)</Th><Th>Quem enviou</Th><Th>Envio</Th>
-              <Th>Observações</Th><Th>Status</Th><Th className="border-r-0"> </Th>
+              <Th>Observações</Th><Th>Prioridade</Th><Th>Status</Th><Th className="border-r-0"> </Th>
             </tr>
           </thead>
           <tbody>
@@ -224,7 +231,7 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
               <Row key={i.id} item={i} shiftDate={shiftRef.date} onSave={(p) => save(i.id, p)} onDuplicate={() => duplicate(i)} {...(isAdmin ? { onRemove: () => remove(i.id) } : {})} />
             ))}
             {rows.length === 0 && !draftNew && (
-              <tr><td colSpan={12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
+              <tr><td colSpan={13} className="p-6 text-center text-sm text-muted-foreground">Nenhuma intervenção cadastrada.</td></tr>
             )}
           </tbody>
         </table>
@@ -237,7 +244,7 @@ const Td = ({ children }: { children: ReactNode }) => (
   <td className="border-b border-r border-border px-1.5 py-1 align-middle">{children}</td>
 );
 
-const FIELDS = ["type", "client", "ticket", "start_at", "end_at", "email_subject", "sent_by", "sent_at", "notes", "status"] as const;
+const FIELDS = ["type", "client", "ticket", "start_at", "end_at", "email_subject", "sent_by", "sent_at", "notes", "priority", "status"] as const;
 
 function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }: {
   item: Partial<Intervention>; isNew?: boolean; shiftDate: string;
@@ -322,6 +329,20 @@ function Row({ item, isNew, shiftDate, onSave, onCancel, onDuplicate, onRemove }
           }}
           className={cn("w-56 rounded-sm bg-transparent px-1 py-0.5 outline-none", !editing ? "cursor-default" : "bg-background ring-1 ring-ring/40 focus:ring-ring")}
         />
+      </Td>
+      <Td>
+        <select value={d.priority ?? ""} disabled={busy} onChange={async (e) => {
+          const v = e.target.value || null;
+          if (editing) return set({ priority: v });
+          setD((x) => ({ ...x, priority: v }));
+          setBusy(true);
+          const ok = await onSave({ priority: v });
+          setBusy(false);
+          if (!ok) setD(item);
+        }} className={cn("cursor-pointer rounded px-1.5 py-0.5 font-medium outline-none", PRIORITIES.find((p) => p.key === d.priority)?.cls ?? "bg-transparent")}>
+          <option value="">—</option>
+          {PRIORITIES.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+        </select>
       </Td>
       <Td>
         <select value={d.status ?? "planejada"} disabled={busy} onChange={async (e) => {

@@ -102,6 +102,7 @@ export async function exportXlsx(
     "Quem enviou": i.sent_by ?? "",
     "Data/hora envio": spParts(i.sent_at).br,
     Observações: i.notes ?? "",
+    Prioridade: ({ "1": "1 - Crítico", "2": "2 - Alto", "3": "3 - Moderado" } as Record<string, string>)[i.priority ?? ""] ?? "",
     Status: i.status,
     "Criado por": i.created_by ?? "",
     "Alterado por": i.updated_by ?? "",
@@ -172,7 +173,7 @@ function buildSheets(d: ExportData, shift?: string) {
     .map((x) => ({
     Tipo: x.type ?? "", Cliente: x.client ?? "", Data: x.start_at ? br(spParts(x.start_at).date) : "", Ticket: x.ticket ?? "",
     Início: spParts(x.start_at).time, "Fim previsto": spParts(x.end_at).br, "E-mail (assunto)": x.email_subject ?? "",
-    "Quem enviou": x.sent_by ?? "", "Data/hora envio": spParts(x.sent_at).br, Observações: x.notes ?? "", Status: x.status,
+    "Quem enviou": x.sent_by ?? "", "Data/hora envio": spParts(x.sent_at).br, Observações: x.notes ?? "", Prioridade: ({ "1": "1 - Crítico", "2": "2 - Alto", "3": "3 - Moderado" } as Record<string, string>)[x.priority ?? ""] ?? "", Status: x.status,
     "Criado por": x.created_by ?? "", "Alterado por": x.updated_by ?? "",
   }));
   const tMap = new Map(d.taskTemplates.map((t) => [t.id, t]));
