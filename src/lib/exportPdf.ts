@@ -63,13 +63,14 @@ export async function exportPdf({ from, to, shift, messages, interventions }: Ex
 
   autoTable(doc, {
     startY: finalY + 15,
-    head: [["Data/Hora", "Tipo", "Cliente", "Ticket", "Assunto", "Status", "Obs"]],
+    head: [["Data/Hora", "Tipo", "Cliente", "Ticket", "Assunto", "Prioridade", "Status", "Obs"]],
     body: ints.map((i) => [
       spParts(i.start_at).br,
       i.type || "-",
       i.client || "-",
       i.ticket ? `#${i.ticket}` : "-",
       i.email_subject || "-",
+      ({ "1": "1 - Crítico", "2": "2 - Alto", "3": "3 - Moderado" } as Record<string, string>)[i.priority ?? ""] ?? "-",
       i.status,
       i.notes || "-",
     ]),
