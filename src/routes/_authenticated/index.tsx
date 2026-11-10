@@ -19,6 +19,7 @@ import { useAttendance, useInterventions, useMessages, useRealtimeSync, useTasks
 import { exportXlsx } from "@/lib/export";
 import { shiftLabel, shiftOf, type ShiftKey, type ShiftRef } from "@/lib/shifts";
 import { InterventionAlertModal } from "@/components/turno/InterventionAlertModal";
+import { CriticalAlertModal } from "@/components/turno/CriticalAlertModal";
 
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -76,6 +77,7 @@ function Index() {
     <div className="min-h-screen bg-background">
       <ChangePasswordDialog open={pwOpen || mustChangePassword} forced={mustChangePassword} onClose={() => setPwOpen(false)} />
       <InterventionAlertModal onGoToInterventions={() => setTab("recados")} />
+      <CriticalAlertModal onGoToInterventions={() => setTab("recados")} />
       <Tabs value={tab} onValueChange={setTab}>
         <header className="sticky top-0 z-20 border-b border-border bg-sidebar">
           <div className="flex flex-wrap items-center gap-3 px-3 pt-2 md:px-4">
