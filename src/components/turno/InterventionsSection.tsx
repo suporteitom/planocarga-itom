@@ -1,3 +1,4 @@
+import { notifyCritical } from "@/lib/teams.functions";
 import { AutoTextarea } from "./AutoTextarea";
 import type React from "react";
 import type { ReactNode } from "react";
@@ -87,11 +88,19 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
     }
   };
 
+  const notifyFn = useServerFn(notifyCritical);
+  const alertCritical = (id: string) => {
+    notifyFn({ data: { id, origin: window.location.origin } })
+      .then((r) => { if (r.sent) toast.success("Gestor avisado no Teams."); })
+      .catch((e) => toast.error(`Aviso ao Teams falhou: ${e instanceof Error ? e.message : e}`));
+  };
+
   const save = async (id: string, patch: Partial<Intervention>) => {
     if (!guard()) return false;
     await ensureType(patch.type);
     const { error } = await supabase.from("interventions").update({ ...patch, ...auditUpdate(user) }).eq("id", id);
     if (error) { toast.error("Erro ao salvar."); return false; }
+    if (patch.priority === "1") alertCritical(id);
     qc.invalidateQueries({ queryKey: ["interventions"] });
     toast.success("Intervenção atualizada.");
     return true;
@@ -144,8 +153,9 @@ export function InterventionsSection({ shiftRef, user }: { shiftRef: ShiftRef; u
       patch = { ...patch, attachment_path: path, attachment_name: pendingFile.name };
     }
     await ensureType(patch.type);
-    const { error } = await supabase.from("interventions").insert({ ...(patch as { start_at: string }), ...auditCreate(user) });
+    const { data: created, error } = await supabase.from("interventions").insert({ ...(patch as { start_at: string }), ...auditCreate(user) }).select("id").single();
     if (error) { toast.error("Erro ao salvar."); return false; }
+    if (patch.priority === "1" && created) alertCritical(created.id);
     setDraftNew(null);
     setPendingFile(null);
     qc.invalidateQueries({ queryKey: ["interventions"] });
