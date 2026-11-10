@@ -370,6 +370,27 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          id: number
+          teams_enabled: boolean
+          teams_webhook_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          teams_enabled?: boolean
+          teams_webhook_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          teams_enabled?: boolean
+          teams_webhook_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shift_attendance: {
         Row: {
           created_at: string
