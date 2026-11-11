@@ -82,9 +82,16 @@ export const notifyCritical = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: i } = await context.supabase.from("interventions").select("*").eq("id", data.id).maybeSingle();
     if (!i || i.priority !== "1") return { sent: false };
+    const { sendPushToAll } = await import("@/lib/push.functions");
+    const pushed = await sendPushToAll({
+      title: "🚨 Intervenção Crítica (Prioridade 1)",
+      body: `${i.client ?? "—"} · Ticket ${i.ticket ?? "—"} · ${i.type ?? ""} · Início ${fmt(i.start_at)}`,
+      url: data.origin && /^https?:\/\//.test(data.origin) ? data.origin : undefined,
+      tag: `crit-${i.id}`,
+    }).catch(() => 0);
     const admin = await adminClient();
     const { data: s } = await admin.from("notification_settings").select("teams_webhook_url, teams_enabled").eq("id", 1).maybeSingle();
-    if (!s?.teams_enabled || !s.teams_webhook_url) return { sent: false };
+    if (!s?.teams_enabled || !s.teams_webhook_url) return { sent: false, pushed };
     const by = (context.claims as any)?.user_metadata?.name ?? (context.claims as any)?.email ?? "—";
     await post(s.teams_webhook_url, card("🚨 ALERTA: Intervenção Crítica (Prioridade 1)", [
       { title: "Cliente", value: i.client ?? "—" },
@@ -94,5 +101,5 @@ export const notifyCritical = createServerFn({ method: "POST" })
       { title: "Fim previsto", value: fmt(i.end_at) },
       { title: "Registado por", value: String(by) },
     ], i.notes ?? "", data.origin && /^https?:\/\//.test(data.origin) ? data.origin : undefined));
-    return { sent: true };
+    return { sent: true, pushed };
   });
