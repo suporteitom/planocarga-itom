@@ -10,6 +10,7 @@ import { PasswordInput, passwordErrorPt } from "@/components/turno/PasswordInput
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TeamsSettings } from "@/components/turno/TeamsSettings";
+import { PushSettings } from "@/components/turno/PushSettings";
 import { amIAdmin, createAccount, deleteAccount, listAccounts, updateAccount, type TeamAccount } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -108,6 +109,7 @@ function AdminPage() {
         <p className="mt-2 text-xs text-muted-foreground">Não existe cadastro público: só administradores criam contas. Contas desativadas não conseguem entrar.</p>
       </div>
       {isAdmin && <TeamsSettings />}
+      <PushSettings />
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent>
