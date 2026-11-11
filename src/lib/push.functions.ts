@@ -5,7 +5,7 @@ type Sub = { endpoint: string; p256dh: string; auth: string };
 
 export const getVapidPublicKey = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => ({ key: process.env.VAPID_PUBLIC_KEY ?? "" }));
+  .handler(async () => ({ key: process.env["VAPID_PUBLIC_KEY"] ?? "" }));
 
 export const savePushSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -30,8 +30,8 @@ export const removePushSubscription = createServerFn({ method: "POST" })
   });
 
 /** Envia para todos os navegadores inscritos. Usar apenas no servidor. */
-export async function sendPushToAll(msg: { title: string; body: string; url?: string; tag?: string }) {
-  const pub = process.env.VAPID_PUBLIC_KEY, priv = process.env.VAPID_PRIVATE_KEY;
+export async function sendPushToAll(msg: { title: string; body: string; url?: string | undefined; tag?: string }) {
+  const pub = process.env["VAPID_PUBLIC_KEY"], priv = process.env["VAPID_PRIVATE_KEY"];
   if (!pub || !priv) return 0;
   const { buildPushPayload } = await import("@block65/webcrypto-web-push");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
